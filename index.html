@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Smash Outlaws: Getaway Rush</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>Neon Getaway: Destruction Run</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏎️</text></svg>">
 </head>
 <body>
@@ -12,7 +12,7 @@
         <!-- Main HTML5 2D Canvas -->
         <canvas id="game-canvas"></canvas>
 
-        <!-- Top Menu Currency & Sound Bar (Always visible in menus) -->
+        <!-- Top Menu Currency & Sound Bar -->
         <div class="top-menu-bar">
             <div class="currency-badge">
                 <span>💰</span>
@@ -26,8 +26,8 @@
         <!-- 1. MAIN MENU SCREEN -->
         <div id="main-menu" class="screen-overlay">
             <div class="game-logo-container">
-                <h1 class="game-title">SMASH OUTLAWS</h1>
-                <div class="game-subtitle">GETAWAY RUSH</div>
+                <h1 class="game-title">NEON GETAWAY</h1>
+                <div class="game-subtitle">DESTRUCTION RUN</div>
             </div>
 
             <div class="menu-actions-stack">
@@ -47,7 +47,7 @@
             </div>
         </div>
 
-        <!-- 2. MAP SELECTION SCREEN -->
+        <!-- 2. MAP SELECTION SCREEN (Exactly 3 Maps) -->
         <div id="map-select-screen" class="screen-overlay hidden">
             <div class="game-logo-container">
                 <h2 class="game-title" style="font-size: 2.2rem;">SELECT GETAWAY MAP</h2>
@@ -60,7 +60,7 @@
                     <div class="map-preview">❄️</div>
                     <div class="map-info">
                         <div class="map-title">Winter Wonderland</div>
-                        <div class="map-desc">Snowy forest roads, frozen cabins, icy surfaces, and long slippery drift curves.</div>
+                        <div class="map-desc">Snow-covered forest roads, icy surfaces, frozen obstacles, and long slippery drift curves.</div>
                         <div class="map-stats">
                             <span>SURFACE: SNOW / ICE</span>
                             <span>TRACTION: 82%</span>
@@ -73,7 +73,7 @@
                     <div class="map-preview">☀️</div>
                     <div class="map-info">
                         <div class="map-title">Summer County</div>
-                        <div class="map-desc">Sunny rural farmlands, barns, hay bales, and dusty country dirt tracks.</div>
+                        <div class="map-desc">Sunny rural farmlands, red barns, hay bales, and dusty country dirt tracks.</div>
                         <div class="map-stats">
                             <span>SURFACE: ASPHALT / DIRT</span>
                             <span>TRACTION: 100%</span>
@@ -86,7 +86,7 @@
                     <div class="map-preview">🌸</div>
                     <div class="map-info">
                         <div class="map-title">Spring Valley</div>
-                        <div class="map-desc">Blossoming cherry trees, scenic river bridges, flower stalls, and high-speed chicanes.</div>
+                        <div class="map-desc">Blossoming cherry trees, scenic river bridges, flower stalls, and winding drift chicanes.</div>
                         <div class="map-stats">
                             <span>SURFACE: SCENIC ROADWAY</span>
                             <span>TRACTION: 94%</span>
@@ -100,7 +100,7 @@
             </button>
         </div>
 
-        <!-- 3. GARAGE SHOWROOM SCREEN -->
+        <!-- 3. GARAGE SHOWROOM SCREEN (Exactly 4 Cars) -->
         <div id="garage-screen" class="screen-overlay hidden">
             <div class="garage-container">
                 <div class="top-menu-bar" style="position: static; width: 100%; margin-bottom: 5px;">
@@ -122,7 +122,7 @@
 
                 <!-- Vehicle Metadata -->
                 <div class="garage-car-header">
-                    <div id="garage-car-name" class="garage-car-name">Rogue Bandit</div>
+                    <div id="garage-car-name" class="garage-car-name">Neon Compact</div>
                     <div id="garage-car-type" class="garage-car-type">STARTER COMPACT</div>
                     <div id="garage-car-desc" style="font-size: 0.85rem; color: #a0aec0; margin-top: 4px;">Nimble hot hatch with agile steering.</div>
                 </div>
@@ -188,15 +188,26 @@
                 <div class="hud-cluster-right">
                     <div class="hud-vehicle-status">
                         <div id="hud-speed" class="hud-speed-text">0 MPH</div>
-                        <div class="hud-health-bar">
-                            <div id="hud-health-fill" class="hud-health-fill"></div>
+                        <div class="hud-health-wrapper">
+                            <div class="hud-health-header">
+                                <span>VEHICLE HEALTH</span>
+                                <span id="hud-health-pct">100%</span>
+                            </div>
+                            <div class="hud-health-bar">
+                                <div id="hud-health-fill" class="hud-health-fill" style="width: 100%;"></div>
+                            </div>
                         </div>
                     </div>
                     <button id="btn-pause-hud" class="btn-pause" title="Pause Game">⏸</button>
                 </div>
             </div>
 
-            <!-- Bottom Ability Dock -->
+            <!-- Recovery & Police Announcement Banner -->
+            <div id="hud-notification-banner" class="hud-notification-banner hidden">
+                AUTO RECOVERY: REVERSING...
+            </div>
+
+            <!-- Bottom Ability Dock (Independent 150s Cooldowns) -->
             <div class="hud-bottom-bar">
                 <div class="ability-dock">
                     <!-- Ability 1: Titan Tank -->
@@ -213,8 +224,8 @@
                         <div class="cd-overlay"></div>
                         <div class="cd-text">READY</div>
                     </div>
-                    <!-- Ability 3: EMP Shockwave -->
-                    <div id="btn-ability-emp" class="ability-btn ready" title="EMP Shockwave (3 or R)">
+                    <!-- Ability 3: Electric Shock -->
+                    <div id="btn-ability-emp" class="ability-btn ready" title="Electric Shock (3 or R)">
                         <div class="ability-icon">⚡</div>
                         <div class="ability-key-tag">[3] EMP</div>
                         <div class="cd-overlay"></div>
@@ -279,27 +290,28 @@
             <div class="modal-box" style="max-width: 620px;">
                 <div class="modal-title">THE GETAWAY MISSION</div>
                 <div class="story-content">
-                    <p><strong>Original Story:</strong> You are the Underground Syndicate's most sought-after wheelman. The corrupt County Task Force has locked down the county borders. Your mission: tear through the roadblocks, smash contraband drops for dirty cash, and escape Sheriff Vance's relentless pursuit cruisers.</p>
+                    <p><strong>Original Story:</strong> You are the Underground Syndicate's most sought-after wheelman in <strong>Neon Getaway: Destruction Run</strong>. Sheriff Vance and the Highway Patrol have locked down the county borders. Smash contraband drops, collect bounties, and outrun the law!</p>
                     
-                    <h3>🖥️ PC & Laptop Controls (Mouse Only Steering)</h3>
+                    <h3>🖥️ Desktop Controls (Mouse-Driven Steering)</h3>
                     <ul>
                         <li><strong>Mouse Movement:</strong> Steer car smoothly towards cursor.</li>
-                        <li><strong>Right Mouse Button (Hold):</strong> Throttle / Nitro boost.</li>
-                        <li><strong>Forward Drive:</strong> Car moves forward automatically!</li>
+                        <li><strong>Right Mouse Button (Hold):</strong> Throttle / Nitro acceleration boost.</li>
+                        <li><strong>Automatic Forward Drive:</strong> Car cruises forward automatically!</li>
                         <li><strong>Optional Keyboard:</strong> W/S for boost/brake, A/D or Arrows to steer, Space to handbrake/drift.</li>
-                        <li><strong>Abilities:</strong> Press <strong>1 / Q</strong> (Titan Tank), <strong>2 / E</strong> (Oil Slick), <strong>3 / R</strong> (EMP Shock).</li>
-                        <li><strong>Pause:</strong> Press <strong>Esc</strong> or <strong>P</strong>.</li>
+                        <li><strong>Abilities:</strong> 1/Q (Titan Tank), 2/E (Oil Slick), 3/R (Electric Shock). Each has an independent 150s cooldown.</li>
+                        <li><strong>Auto Reverse:</strong> Automatically backs out if stuck against a wall for ~2 seconds.</li>
+                        <li><strong>Pause:</strong> Press Esc or P.</li>
                     </ul>
 
-                    <h3>📱 Mobile & Tablet Controls (One Circular Ring)</h3>
+                    <h3>📱 Mobile Controls (One Circular Touch Ring)</h3>
                     <ul>
-                        <li><strong>Circular Touch Ring (Bottom-Right):</strong> Touch and drag left or right to steer smoothly.</li>
-                        <li><strong>Automatic Drive:</strong> The vehicle cruises forward automatically without needing to hold a gas button.</li>
-                        <li><strong>Abilities (Bottom-Left):</strong> Tap the Tank, Oil Slick, or EMP icons with your left thumb.</li>
+                        <li><strong>Circular Touch Ring (Bottom-Right):</strong> Touch and drag within or around the translucent circle to steer.</li>
+                        <li><strong>Automatic Drive:</strong> Vehicle moves forward automatically without holding an accelerator.</li>
+                        <li><strong>Abilities (Bottom-Left):</strong> Tap the Tank, Oil Slick, or Electric Shock buttons.</li>
                     </ul>
 
-                    <h3>💥 Cash & Smashing</h3>
-                    <p>Smash wooden fences, crates, fuel barrels, road signs, and roadside stalls to earn instant cash! Smashing objects quickly builds your <strong>COMBO MULTIPLIER</strong> for bonus payouts!</p>
+                    <h3>💥 Destruction & Damage</h3>
+                    <p>Smashing wooden fences, crates, fuel barrels, road signs, and roadside structures awards cash and builds your <strong>COMBO MULTIPLIER</strong>. Watch your <strong>VEHICLE HEALTH</strong> bar—crashing into solid walls at high speed causes heavy damage!</p>
                 </div>
 
                 <button id="btn-close-story" class="btn-arcade btn-secondary" style="margin-top: 12px;">
@@ -310,6 +322,6 @@
     </div>
 
     <!-- Main Game Script Entry -->
-    <script type="module" src="js/game.js"></script>
+    <script type="module" src="src/main.js"></script>
 </body>
 </html>

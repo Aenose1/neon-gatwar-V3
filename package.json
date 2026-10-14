@@ -1,8 +1,8 @@
 {
-  "name": "smash-outlaws",
-  "version": "1.0.0",
+  "name": "neon-getaway",
+  "version": "1.2.0",
   "type": "module",
-  "description": "Smash Outlaws: Getaway Rush - Arcade driving and police pursuit game with destructible scenery",
+  "description": "Neon Getaway: Destruction Run - 2D browser driving, destruction, and police pursuit game",
   "main": "index.html",
   "scripts": {
     "start": "npx serve -l 3000 .",
@@ -12,10 +12,11 @@
   },
   "keywords": [
     "game",
-    "html5-canvas",
+    "canvas-2d",
     "arcade-driving",
     "smash-bandits",
-    "police-chase"
+    "police-chase",
+    "neon-getaway"
   ],
   "author": "Antigravity Engineering",
   "license": "MIT"
