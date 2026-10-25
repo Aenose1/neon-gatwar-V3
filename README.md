@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # NEON GETAWAY: DESTRUCTION RUN 🏎️💥
 
 > **A high-octane 2D/2.5D browser arcade getaway driving game inspired by the mechanics and spirit of Smash Bandits Racing.**
@@ -168,3 +169,6 @@ python -m http.server 8000
 npx serve -l 3000 .
 ```
 Open `http://localhost:8000` or `http://localhost:3000` in any web browser.
+=======
+# neon-getaway-V2
+>>>>>>> 84f734fa0125cee35c958995659764c7665bc2dd
