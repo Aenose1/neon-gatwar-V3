@@ -527,14 +527,13 @@ export class GameMap {
         };
 
         const addSolidProp = (type, x, y) => {
-            if (!this.isClearOfRoads(x, y, 20)) return;
+            // Strict road clearance: NEVER place any solid prop within 90px of any road
+            if (!this.isClearOfRoads(x, y, 90)) return;
             if (this.isInWater(x, y)) return;
 
-            let w = 24, h = 24, radius = 16;
-            if (type === 'barrier_block') { w = 34; h = 20; radius = 18; }
+            let w = 36, h = 36, radius = 22;
+            if (type === 'monument') { w = 40; h = 40; radius = 24; }
             else if (type === 'transformer') { w = 32; h = 32; radius = 20; }
-            else if (type === 'utility_box') { w = 26; h = 26; radius = 16; }
-            else if (type === 'monument') { w = 40; h = 40; radius = 24; }
 
             this.solidProps.push({
                 id: `solid_${solidId++}`,
@@ -545,14 +544,14 @@ export class GameMap {
             });
         };
 
-        // 1. Roadside Props: 5-step cycle placing 6 Destructibles and 4 Solid Props (60.0% ratio)
+        // 1. Roadside Props: 100% DESTRUCTIBLE breakable objects along road shoulders (Zero solid props)
         for (let i = 0; i < this.roads.length; i++) {
             const r = this.roads[i];
             const cos = Math.cos(r.angle);
             const sin = Math.sin(r.angle);
             const normalX = -sin;
             const normalY = cos;
-            const offset = r.halfW + 28;
+            const offset = r.halfW + 30;
 
             const step = 90;
             let stepIndex = 0;
@@ -562,63 +561,50 @@ export class GameMap {
                 const cycle = stepIndex % 5;
                 stepIndex++;
 
-                // Balanced placement: 3 Destructibles + 2 Solids on each side over 5 cycles (60% destructible ratio)
                 if (this.theme === 'suburbs') {
                     if (cycle === 0) {
                         addDestructible('fence', px + normalX * offset, py + normalY * offset, 'medium');
                         addDestructible('bush', px - normalX * offset, py - normalY * offset, 'light');
                     } else if (cycle === 1) {
-                        addDestructible('streetlight', px + normalX * (offset + 10), py + normalY * (offset + 10), 'medium');
-                        addSolidProp('transformer', px - normalX * (offset + 14), py - normalY * (offset + 14));
+                        addDestructible('streetlight', px + normalX * (offset + 8), py + normalY * (offset + 8), 'medium');
                     } else if (cycle === 2) {
-                        addSolidProp('monument', px + normalX * (offset + 16), py + normalY * (offset + 16));
-                        addDestructible('fence', px - normalX * offset, py - normalY * offset, 'medium');
+                        addDestructible('hydrant', px - normalX * (offset + 8), py - normalY * (offset + 8), 'medium');
                     } else if (cycle === 3) {
                         addDestructible('bush', px + normalX * offset, py + normalY * offset, 'light');
-                        addSolidProp('transformer', px - normalX * (offset + 14), py - normalY * (offset + 14));
                     } else { // cycle === 4
-                        addSolidProp('monument', px + normalX * (offset + 16), py + normalY * (offset + 16));
-                        addDestructible('streetlight', px - normalX * (offset + 10), py - normalY * (offset + 10), 'medium');
+                        addDestructible('fence', px - normalX * offset, py - normalY * offset, 'medium');
                     }
                 } else if (this.theme === 'river') {
                     if (cycle === 0) {
                         addDestructible('fence', px + normalX * offset, py + normalY * offset, 'medium');
                         addDestructible('crate', px - normalX * offset, py - normalY * offset, 'light');
                     } else if (cycle === 1) {
-                        addDestructible('barrel', px + normalX * (offset + 12), py + normalY * (offset + 12), 'medium');
-                        addSolidProp('barrier_block', px - normalX * (offset + 12), py - normalY * (offset + 12));
+                        addDestructible('barrel', px + normalX * (offset + 10), py + normalY * (offset + 10), 'medium');
                     } else if (cycle === 2) {
-                        addSolidProp('utility_box', px + normalX * (offset + 16), py + normalY * (offset + 16));
-                        addDestructible('fence', px - normalX * offset, py - normalY * offset, 'medium');
+                        addDestructible('crate', px - normalX * (offset + 10), py - normalY * (offset + 10), 'light');
                     } else if (cycle === 3) {
-                        addDestructible('crate', px + normalX * offset, py + normalY * offset, 'light');
-                        addSolidProp('barrier_block', px - normalX * (offset + 12), py - normalY * (offset + 12));
+                        addDestructible('barrel', px + normalX * (offset + 10), py + normalY * (offset + 10), 'medium');
                     } else { // cycle === 4
-                        addSolidProp('utility_box', px + normalX * (offset + 16), py + normalY * (offset + 16));
-                        addDestructible('barrel', px - normalX * (offset + 12), py - normalY * (offset + 12), 'medium');
+                        addDestructible('fence', px - normalX * (offset + 10), py - normalY * (offset + 10), 'medium');
                     }
                 } else { // industrial
                     if (cycle === 0) {
                         addDestructible('barrier', px + normalX * offset, py + normalY * offset, 'heavy');
                         addDestructible('barrel', px - normalX * offset, py - normalY * offset, 'medium');
                     } else if (cycle === 1) {
-                        addDestructible('container_small', px + normalX * (offset + 16), py + normalY * (offset + 16), 'heavy');
-                        addSolidProp('barrier_block', px - normalX * (offset + 16), py - normalY * (offset + 16));
+                        addDestructible('container_small', px + normalX * (offset + 12), py + normalY * (offset + 12), 'heavy');
                     } else if (cycle === 2) {
-                        addSolidProp('transformer', px + normalX * (offset + 16), py + normalY * (offset + 16));
-                        addDestructible('barrier', px - normalX * offset, py - normalY * offset, 'heavy');
+                        addDestructible('barrier', px - normalX * (offset + 12), py - normalY * (offset + 12), 'heavy');
                     } else if (cycle === 3) {
-                        addDestructible('barrel', px + normalX * offset, py + normalY * offset, 'medium');
-                        addSolidProp('barrier_block', px - normalX * (offset + 16), py - normalY * (offset + 16));
+                        addDestructible('barrel', px + normalX * (offset + 12), py + normalY * (offset + 12), 'medium');
                     } else { // cycle === 4
-                        addSolidProp('transformer', px + normalX * (offset + 16), py + normalY * (offset + 16));
-                        addDestructible('container_small', px - normalX * (offset + 16), py - normalY * (offset + 16), 'heavy');
+                        addDestructible('container_small', px - normalX * (offset + 12), py - normalY * (offset + 12), 'heavy');
                     }
                 }
             }
         }
 
-        // 2. Intersection Props: 3 Destructibles + 2 Solids = 60.0% ratio
+        // 2. Intersection Props: 100% DESTRUCTIBLE signs, streetlights, barrels (Zero solid props)
         const intersections = [
             { x: 2100, y: 700 }, { x: 2100, y: 3400 },
             { x: 700, y: 2100 }, { x: 3500, y: 2100 },
@@ -634,36 +620,36 @@ export class GameMap {
 
             if (this.theme === 'suburbs') {
                 addDestructible('hydrant', pt.x + 95, pt.y - 95, 'medium');
-                addSolidProp('transformer', pt.x - 95, pt.y + 95);
-                addSolidProp('monument', pt.x + 125, pt.y + 125);
+                addDestructible('streetlight', pt.x - 95, pt.y + 95, 'medium');
             } else if (this.theme === 'river') {
                 addDestructible('barrel', pt.x + 95, pt.y - 95, 'medium');
-                addSolidProp('barrier_block', pt.x - 95, pt.y + 95);
-                addSolidProp('utility_box', pt.x + 125, pt.y + 125);
+                addDestructible('crate', pt.x - 95, pt.y + 95, 'light');
             } else {
                 addDestructible('barrier', pt.x + 95, pt.y - 95, 'heavy');
-                addSolidProp('transformer', pt.x - 95, pt.y + 95);
-                addSolidProp('barrier_block', pt.x + 125, pt.y + 125);
+                addDestructible('barrel', pt.x - 95, pt.y + 95, 'medium');
             }
         }
 
-        // 3. Cluster Props Around Buildings: 3 Destructibles + 2 Solids = 60.0% ratio
+        // 3. Cluster Props Around Buildings (Houses and buildings kept intact)
         for (const b of this.buildings) {
             addDestructible('crate', b.x - b.halfW - 28, b.y, 'light');
             addDestructible('crate', b.x + b.halfW + 28, b.y, 'light');
 
             if (this.theme === 'suburbs') {
                 addDestructible('bush', b.x, b.y + b.halfH + 24, 'light');
-                addSolidProp('monument', b.x - b.halfW - 40, b.y - b.halfH - 40);
-                addSolidProp('transformer', b.x + b.halfW + 40, b.y - b.halfH - 40);
             } else if (this.theme === 'river') {
                 addDestructible('barrel', b.x, b.y + b.halfH + 28, 'medium');
-                addSolidProp('barrier_block', b.x - b.halfW - 35, b.y - b.halfH - 35);
-                addSolidProp('utility_box', b.x + b.halfW + 35, b.y + b.halfH + 35);
             } else {
                 addDestructible('oil_tank', b.x, b.y + b.halfH + 32, 'heavy');
-                addSolidProp('transformer', b.x - b.halfW - 38, b.y - b.halfH - 38);
-                addSolidProp('barrier_block', b.x + b.halfW + 38, b.y + b.halfH + 38);
+            }
+        }
+
+        // 4. Deep Off-Road Park Plinths (Exclusively in off-road interior zones strictly >= 95px clear of all roads)
+        for (let x = 200; x < this.width - 200; x += 190) {
+            for (let y = 200; y < this.height - 200; y += 190) {
+                if (this.isClearOfRoads(x, y, 95) && !this.isInWater(x, y)) {
+                    addSolidProp('monument', x, y);
+                }
             }
         }
 
@@ -1084,24 +1070,6 @@ export class GameMap {
                 // Warning indicator
                 ctx.fillStyle = '#f1c40f';
                 ctx.fillRect(p.x - 3, p.y - 6, 6, 12);
-            } else if (p.type === 'utility_box') {
-                ctx.fillStyle = '#34495e';
-                ctx.fillRect(p.x - p.w / 2, p.y - p.h / 2, p.w, p.h);
-                ctx.strokeStyle = '#00d2ff';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(p.x - p.w / 2, p.y - p.h / 2, p.w, p.h);
-                ctx.fillStyle = '#1abc9c';
-                ctx.fillRect(p.x - 5, p.y - 2, 10, 4);
-            } else if (p.type === 'barrier_block') {
-                ctx.fillStyle = '#7f8c8d';
-                ctx.fillRect(p.x - p.w / 2, p.y - p.h / 2, p.w, p.h);
-                ctx.strokeStyle = '#bdc3c7';
-                ctx.lineWidth = 1.5;
-                ctx.strokeRect(p.x - p.w / 2, p.y - p.h / 2, p.w, p.h);
-                // Red & White hazard reflective stripes
-                ctx.fillStyle = '#e74c3c';
-                ctx.fillRect(p.x - 11, p.y - p.h / 2, 6, p.h);
-                ctx.fillRect(p.x + 5, p.y - p.h / 2, 6, p.h);
             } else if (p.type === 'monument') {
                 ctx.fillStyle = '#57606f';
                 ctx.fillRect(p.x - p.w / 2, p.y - p.h / 2, p.w, p.h);

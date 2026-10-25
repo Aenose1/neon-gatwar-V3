@@ -258,16 +258,29 @@ const hpAfterCopHit = testCar.damage.health;
 engine.handlePlayerPolice(testCar, mockPoliceManager, dummyParticles, dummyScoring, dummyCamera);
 assert.strictEqual(testCar.damage.health, hpAfterCopHit, 'Damage must NOT be repeatedly applied every frame while overlapping');
 
-// F. Unwanted Circle Object Removed:
+// F. Unwanted Objects & Road Clearance Verification:
 assert(!mockMap.drawGroundDetails.toString().includes('arc'), 'drawGroundDetails must NOT draw circular artifacts on the ground');
 assert(!mockMap.drawSolidProps.toString().includes('arc'), 'drawSolidProps must NOT draw circular artifacts on the ground');
 
 for (let mapIdx = 0; mapIdx < 3; mapIdx++) {
     const testMap = new GameMap(mapIdx);
+    // Verify circular props removed
     const circularProps = testMap.solidProps.filter(p => p.type === 'bollard' || p.type === 'pylon');
-    assert.strictEqual(circularProps.length, 0, `Map ${testMap.name} must contain zero bollard or pylon circular objects (found ${circularProps.length})`);
+    assert.strictEqual(circularProps.length, 0, `Map ${testMap.name} must contain zero bollard or pylon circular objects`);
+
+    // Verify barrier_block and utility_box removed
+    const unwantedBlocks = testMap.solidProps.filter(p => p.type === 'barrier_block' || p.type === 'utility_box');
+    assert.strictEqual(unwantedBlocks.length, 0, `Map ${testMap.name} must contain zero barrier_block or utility_box objects`);
+
+    // Verify zero solid props on roads (all solid props must have >= 90px clearance from roads)
+    for (const p of testMap.solidProps) {
+        assert(testMap.isClearOfRoads(p.x, p.y, 90), `Solid prop ${p.type} at (${p.x}, ${p.y}) must NOT be near any road`);
+    }
+
+    // Verify houses/buildings are preserved
+    assert(testMap.buildings.length >= 8, `Map ${testMap.name} must preserve buildings and houses`);
 }
-console.log('✓ Zero environmental damage, police damage once-per-event, and circular object removal verified.');
+console.log('✓ Zero environmental damage, police damage once-per-event, and zero solid blocks on roads verified.');
 
 // Test 6: Fast Automatic Reverse Recovery & Responsive Manual Reverse
 console.log('Test 6: Verifying fast automatic reverse recovery and responsive manual reverse speed...');
