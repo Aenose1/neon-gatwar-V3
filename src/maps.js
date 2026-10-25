@@ -450,7 +450,7 @@ export class GameMap {
             });
         };
 
-        // 1. Roadside Fences, Streetlights, and Barriers
+        // 1. Roadside Props: 5-step cycle placing 6 Destructibles and 4 Solid Props (60.0% ratio)
         for (let i = 0; i < this.roads.length; i++) {
             const r = this.roads[i];
             const cos = Math.cos(r.angle);
@@ -460,37 +460,70 @@ export class GameMap {
             const offset = r.halfW + 28;
 
             const step = 90;
+            let stepIndex = 0;
             for (let dist = 90; dist < r.length - 90; dist += step) {
                 const px = r.x1 + cos * dist;
                 const py = r.y1 + sin * dist;
+                const cycle = stepIndex % 5;
+                stepIndex++;
 
-                // Alternate between destructible and solid props targeting >= 60% destructibility
+                // Balanced placement: 3 Destructibles + 2 Solids on each side over 5 cycles (60% destructible ratio)
                 if (this.theme === 'suburbs') {
-                    addDestructible('fence', px + normalX * offset, py + normalY * offset, 'medium');
-                    addDestructible('bush', px - normalX * offset, py - normalY * offset, 'light');
-                    if (dist % (step * 2) === 0) {
-                        addDestructible('streetlight', px + normalX * (offset + 12), py + normalY * (offset + 12), 'medium');
-                        addSolidProp('transformer', px - normalX * (offset + 16), py - normalY * (offset + 16));
+                    if (cycle === 0) {
+                        addDestructible('fence', px + normalX * offset, py + normalY * offset, 'medium');
+                        addDestructible('bush', px - normalX * offset, py - normalY * offset, 'light');
+                    } else if (cycle === 1) {
+                        addDestructible('streetlight', px + normalX * (offset + 10), py + normalY * (offset + 10), 'medium');
+                        addSolidProp('transformer', px - normalX * (offset + 14), py - normalY * (offset + 14));
+                    } else if (cycle === 2) {
+                        addSolidProp('monument', px + normalX * (offset + 16), py + normalY * (offset + 16));
+                        addDestructible('fence', px - normalX * offset, py - normalY * offset, 'medium');
+                    } else if (cycle === 3) {
+                        addDestructible('bush', px + normalX * offset, py + normalY * offset, 'light');
+                        addSolidProp('transformer', px - normalX * (offset + 14), py - normalY * (offset + 14));
+                    } else { // cycle === 4
+                        addSolidProp('monument', px + normalX * (offset + 16), py + normalY * (offset + 16));
+                        addDestructible('streetlight', px - normalX * (offset + 10), py - normalY * (offset + 10), 'medium');
                     }
                 } else if (this.theme === 'river') {
-                    addDestructible('fence', px + normalX * offset, py + normalY * offset, 'medium');
-                    addDestructible('crate', px - normalX * offset, py - normalY * offset, 'light');
-                    if (dist % (step * 2) === 0) {
-                        addDestructible('barrel', px + normalX * (offset + 14), py + normalY * (offset + 14), 'medium');
+                    if (cycle === 0) {
+                        addDestructible('fence', px + normalX * offset, py + normalY * offset, 'medium');
+                        addDestructible('crate', px - normalX * offset, py - normalY * offset, 'light');
+                    } else if (cycle === 1) {
+                        addDestructible('barrel', px + normalX * (offset + 12), py + normalY * (offset + 12), 'medium');
                         addSolidProp('bollard', px - normalX * (offset + 12), py - normalY * (offset + 12));
+                    } else if (cycle === 2) {
+                        addSolidProp('pylon', px + normalX * (offset + 16), py + normalY * (offset + 16));
+                        addDestructible('fence', px - normalX * offset, py - normalY * offset, 'medium');
+                    } else if (cycle === 3) {
+                        addDestructible('crate', px + normalX * offset, py + normalY * offset, 'light');
+                        addSolidProp('bollard', px - normalX * (offset + 12), py - normalY * (offset + 12));
+                    } else { // cycle === 4
+                        addSolidProp('pylon', px + normalX * (offset + 16), py + normalY * (offset + 16));
+                        addDestructible('barrel', px - normalX * (offset + 12), py - normalY * (offset + 12), 'medium');
                     }
                 } else { // industrial
-                    addDestructible('barrier', px + normalX * offset, py + normalY * offset, 'heavy');
-                    addDestructible('barrel', px - normalX * offset, py - normalY * offset, 'medium');
-                    if (dist % (step * 2) === 0) {
-                        addDestructible('container_small', px + normalX * (offset + 18), py + normalY * (offset + 18), 'heavy');
-                        addSolidProp('pylon', px - normalX * (offset + 18), py - normalY * (offset + 18));
+                    if (cycle === 0) {
+                        addDestructible('barrier', px + normalX * offset, py + normalY * offset, 'heavy');
+                        addDestructible('barrel', px - normalX * offset, py - normalY * offset, 'medium');
+                    } else if (cycle === 1) {
+                        addDestructible('container_small', px + normalX * (offset + 16), py + normalY * (offset + 16), 'heavy');
+                        addSolidProp('pylon', px - normalX * (offset + 16), py - normalY * (offset + 16));
+                    } else if (cycle === 2) {
+                        addSolidProp('transformer', px + normalX * (offset + 16), py + normalY * (offset + 16));
+                        addDestructible('barrier', px - normalX * offset, py - normalY * offset, 'heavy');
+                    } else if (cycle === 3) {
+                        addDestructible('barrel', px + normalX * offset, py + normalY * offset, 'medium');
+                        addSolidProp('pylon', px - normalX * (offset + 16), py - normalY * (offset + 16));
+                    } else { // cycle === 4
+                        addSolidProp('transformer', px + normalX * (offset + 16), py + normalY * (offset + 16));
+                        addDestructible('container_small', px - normalX * (offset + 16), py - normalY * (offset + 16), 'heavy');
                     }
                 }
             }
         }
 
-        // 2. Intersection Signs & Hydrants
+        // 2. Intersection Props: 3 Destructibles + 2 Solids = 60.0% ratio
         const intersections = [
             { x: 2100, y: 700 }, { x: 2100, y: 3400 },
             { x: 700, y: 2100 }, { x: 3500, y: 2100 },
@@ -503,35 +536,39 @@ export class GameMap {
         for (const pt of intersections) {
             addDestructible('sign', pt.x + 95, pt.y + 95, 'light');
             addDestructible('sign', pt.x - 95, pt.y - 95, 'light');
+
             if (this.theme === 'suburbs') {
                 addDestructible('hydrant', pt.x + 95, pt.y - 95, 'medium');
-                addDestructible('trashcan', pt.x - 95, pt.y + 95, 'light');
+                addSolidProp('transformer', pt.x - 95, pt.y + 95);
+                addSolidProp('monument', pt.x + 125, pt.y + 125);
             } else if (this.theme === 'river') {
                 addDestructible('barrel', pt.x + 95, pt.y - 95, 'medium');
                 addSolidProp('bollard', pt.x - 95, pt.y + 95);
+                addSolidProp('pylon', pt.x + 125, pt.y + 125);
             } else {
                 addDestructible('barrier', pt.x + 95, pt.y - 95, 'heavy');
                 addSolidProp('transformer', pt.x - 95, pt.y + 95);
+                addSolidProp('pylon', pt.x + 125, pt.y + 125);
             }
         }
 
-        // 3. Cluster Props Around Buildings (Yard Crates, Stalls, Drums, Pylons)
+        // 3. Cluster Props Around Buildings: 3 Destructibles + 2 Solids = 60.0% ratio
         for (const b of this.buildings) {
             addDestructible('crate', b.x - b.halfW - 28, b.y, 'light');
             addDestructible('crate', b.x + b.halfW + 28, b.y, 'light');
 
             if (this.theme === 'suburbs') {
-                addDestructible('bush', b.x, b.y - b.halfH - 24, 'light');
-                addDestructible('flowerpot', b.x, b.y + b.halfH + 24, 'light');
+                addDestructible('bush', b.x, b.y + b.halfH + 24, 'light');
                 addSolidProp('monument', b.x - b.halfW - 40, b.y - b.halfH - 40);
+                addSolidProp('transformer', b.x + b.halfW + 40, b.y - b.halfH - 40);
             } else if (this.theme === 'river') {
-                addDestructible('stall', b.x, b.y - b.halfH - 32, 'medium');
                 addDestructible('barrel', b.x, b.y + b.halfH + 28, 'medium');
-                addSolidProp('bollard', b.x + b.halfW + 35, b.y + b.halfH + 35);
+                addSolidProp('bollard', b.x - b.halfW - 35, b.y - b.halfH - 35);
+                addSolidProp('pylon', b.x + b.halfW + 35, b.y + b.halfH + 35);
             } else {
-                addDestructible('oil_tank', b.x, b.y - b.halfH - 32, 'heavy');
-                addDestructible('barrel', b.x, b.y + b.halfH + 28, 'medium');
-                addSolidProp('transformer', b.x + b.halfW + 38, b.y - b.halfH - 38);
+                addDestructible('oil_tank', b.x, b.y + b.halfH + 32, 'heavy');
+                addSolidProp('transformer', b.x - b.halfW - 38, b.y - b.halfH - 38);
+                addSolidProp('pylon', b.x + b.halfW + 38, b.y + b.halfH + 38);
             }
         }
 
@@ -679,45 +716,96 @@ export class GameMap {
 
     drawWater(ctx, camera) {
         ctx.save();
+        const time = (typeof performance !== 'undefined' ? performance.now() : Date.now()) * 0.0018;
+
         for (const body of this.waterBodies) {
-            let waterColor = '#3a88c2';
-            let foamColor = '#7bc6ff';
+            // High contrast, unmistakably aquatic colors (NO road-like gray or asphalt markings)
+            let bankColor = '#5d4037';       // Natural earthen/sand bank
+            let shallowColor = '#0288d1';    // Rich aquatic blue
+            let deepColor = '#01579b';       // Deep aquatic blue channel
+            let rippleColor = 'rgba(225, 245, 254, 0.55)'; // Transverse fluid water wave
+
             if (this.theme === 'suburbs') {
-                waterColor = '#4ba3e3';
-                foamColor = '#b3e5fc';
+                bankColor = '#4e342e';       // Sandy creek bank
+                shallowColor = '#0288d1';    // Cyan aquatic blue
+                deepColor = '#01579b';       // Deep blue core
+                rippleColor = 'rgba(224, 247, 250, 0.6)';
+            } else if (this.theme === 'river') {
+                bankColor = '#3e2723';       // Earthen riverbank
+                shallowColor = '#0097a7';    // Vibrant turquoise / cyan river
+                deepColor = '#006064';       // Deep cyan core
+                rippleColor = 'rgba(224, 255, 255, 0.65)';
             } else if (this.theme === 'industrial') {
-                waterColor = '#16485b';
-                foamColor = '#00f0ff';
+                bankColor = '#212121';       // Reinforced canal embankment
+                shallowColor = '#00838f';    // Toxic bio-luminescent teal/cyan
+                deepColor = '#004d40';       // Deep aqua
+                rippleColor = 'rgba(0, 240, 255, 0.5)';
             }
 
             for (const seg of body.segments) {
                 const midX = (seg.x1 + seg.x2) / 2;
                 const midY = (seg.y1 + seg.y2) / 2;
-                if (!camera.isVisible(midX, midY, 600)) continue;
+                if (!camera.isVisible(midX, midY, 650)) continue;
 
-                // Riverbed bank border
-                ctx.strokeStyle = this.theme === 'industrial' ? '#0b2029' : '#33691e';
-                ctx.lineWidth = body.width + 24;
+                // 1. Natural shoreline / riverbank (earth/sand/canal embankment)
+                ctx.strokeStyle = bankColor;
+                ctx.lineWidth = body.width + 26;
                 ctx.lineCap = 'round';
                 ctx.beginPath();
                 ctx.moveTo(seg.x1, seg.y1);
                 ctx.lineTo(seg.x2, seg.y2);
                 ctx.stroke();
 
-                // Main water surface
-                ctx.strokeStyle = waterColor;
+                // 2. Shoreline shallow water / clear aquatic body
+                ctx.strokeStyle = shallowColor;
                 ctx.lineWidth = body.width;
-                ctx.stroke();
-
-                // Surface flow ripples / foam lines
-                ctx.strokeStyle = foamColor;
-                ctx.lineWidth = 4;
-                ctx.setLineDash([18, 28]);
+                ctx.lineCap = 'round';
                 ctx.beginPath();
                 ctx.moveTo(seg.x1, seg.y1);
                 ctx.lineTo(seg.x2, seg.y2);
                 ctx.stroke();
-                ctx.setLineDash([]);
+
+                // 3. Deep water channel running through the center
+                ctx.strokeStyle = deepColor;
+                ctx.lineWidth = body.width * 0.65;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(seg.x1, seg.y1);
+                ctx.lineTo(seg.x2, seg.y2);
+                ctx.stroke();
+
+                // 4. Fluid Transverse Water Wave Ripples (NO road-like centerlines or dashed lane markings!)
+                const dx = seg.x2 - seg.x1;
+                const dy = seg.y2 - seg.y1;
+                const segLen = Math.hypot(dx, dy);
+                if (segLen > 0) {
+                    const uX = dx / segLen;
+                    const uY = dy / segLen;
+                    const pX = -uY; // perpendicular normal across river width
+                    const pY = uX;
+
+                    const rippleSpacing = 70;
+                    ctx.strokeStyle = rippleColor;
+                    ctx.lineWidth = 3.5;
+                    ctx.lineCap = 'round';
+
+                    for (let s = 35; s < segLen - 35; s += rippleSpacing) {
+                        // Gentle flowing wave phase shift
+                        const wavePhase = Math.sin(time * 2.0 + s * 0.04);
+                        const flowOffset = wavePhase * 10;
+                        const cx = seg.x1 + uX * (s + flowOffset);
+                        const cy = seg.y1 + uY * (s + flowOffset);
+
+                        const rSpan = body.width * 0.30;
+                        const arcBow = Math.sin(time * 2.5 + s) * 8 + 12;
+
+                        ctx.beginPath();
+                        ctx.moveTo(cx - pX * rSpan, cy - pY * rSpan);
+                        // Curved quadratic arc representing natural fluid wave crest
+                        ctx.quadraticCurveTo(cx + uX * arcBow, cy + uY * arcBow, cx + pX * rSpan, cy + pY * rSpan);
+                        ctx.stroke();
+                    }
+                }
             }
         }
         ctx.restore();
@@ -763,28 +851,54 @@ export class GameMap {
     drawBridges(ctx, camera) {
         ctx.save();
         for (const b of this.bridges) {
-            if (!camera.isVisible(b.x, b.y, 160)) continue;
+            if (!camera.isVisible(b.x, b.y, 180)) continue;
+
+            // 1. Bridge Drop Shadow cast onto water below
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+            ctx.fillRect(b.x - b.halfW + 8, b.y - b.halfH + 12, b.w, b.h);
+
+            // 2. Concrete abutments / transition pads where bridge meets roads on north & south banks
+            ctx.fillStyle = '#37474f';
+            ctx.fillRect(b.x - b.halfW - 4, b.y - b.halfH - 8, b.w + 8, 12);
+            ctx.fillRect(b.x - b.halfW - 4, b.y + b.halfH - 4, b.w + 8, 12);
 
             if (b.type === 'wooden') {
+                // Timber Bridge Deck
                 ctx.fillStyle = '#6d4c41';
                 ctx.fillRect(b.x - b.halfW, b.y - b.halfH, b.w, b.h);
 
+                // Wood Planks across deck
                 ctx.fillStyle = '#4e342e';
-                for (let y = b.y - b.halfH + 8; y <= b.y + b.halfH - 8; y += 16) {
-                    ctx.fillRect(b.x - b.halfW, y, b.w, 4);
+                for (let y = b.y - b.halfH + 8; y <= b.y + b.halfH - 8; y += 14) {
+                    ctx.fillRect(b.x - b.halfW + 4, y, b.w - 8, 3);
                 }
 
+                // Raised Timber Guardrails on sides
                 ctx.fillStyle = '#8d6e63';
                 ctx.fillRect(b.x - b.halfW, b.y - b.halfH, 12, b.h);
                 ctx.fillRect(b.x + b.halfW - 12, b.y - b.halfH, 12, b.h);
+
+                // Railing Posts
+                ctx.fillStyle = '#3e2723';
+                for (let y = b.y - b.halfH + 10; y <= b.y + b.halfH - 10; y += 24) {
+                    ctx.fillRect(b.x - b.halfW + 2, y, 8, 8);
+                    ctx.fillRect(b.x + b.halfW - 10, y, 8, 8);
+                }
             } else if (b.type === 'steel') {
-                ctx.fillStyle = '#2d3436';
+                // Heavy Industrial Steel Bridge
+                ctx.fillStyle = '#263238';
                 ctx.fillRect(b.x - b.halfW, b.y - b.halfH, b.w, b.h);
 
-                ctx.strokeStyle = '#00d2ff';
-                ctx.lineWidth = 3;
+                // Steel deck plates
+                ctx.fillStyle = '#37474f';
+                ctx.fillRect(b.x - b.halfW + 10, b.y - b.halfH + 6, b.w - 20, b.h - 12);
+
+                // Side Truss Girders with neon outline
+                ctx.strokeStyle = '#00f0ff';
+                ctx.lineWidth = 4;
                 ctx.strokeRect(b.x - b.halfW, b.y - b.halfH, b.w, b.h);
 
+                // Steel diagonal truss lattice
                 ctx.strokeStyle = '#ff007f';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
@@ -793,19 +907,49 @@ export class GameMap {
                 ctx.moveTo(b.x + b.halfW, b.y - b.halfH);
                 ctx.lineTo(b.x - b.halfW, b.y + b.halfH);
                 ctx.stroke();
-            } else { // stone / suspension
-                ctx.fillStyle = '#57606f';
+
+                // Hazard chevrons on bridge entry
+                ctx.fillStyle = '#ffb300';
+                ctx.fillRect(b.x - b.halfW + 12, b.y - b.halfH, b.w - 24, 6);
+                ctx.fillRect(b.x - b.halfW + 12, b.y + b.halfH - 6, b.w - 24, 6);
+            } else { // suspension / stone bridge
+                // Asphalt / Granite Bridge Deck
+                ctx.fillStyle = '#455a64';
                 ctx.fillRect(b.x - b.halfW, b.y - b.halfH, b.w, b.h);
 
-                ctx.fillStyle = '#2f3542';
-                ctx.fillRect(b.x - b.halfW, b.y - b.halfH, 14, b.h);
-                ctx.fillRect(b.x + b.halfW - 14, b.y - b.halfH, 14, b.h);
-
-                ctx.strokeStyle = '#eccc68';
+                // Road markings crossing bridge
+                ctx.strokeStyle = '#ffffff';
                 ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(b.x - b.halfW + 16, b.y - b.halfH);
+                ctx.lineTo(b.x - b.halfW + 16, b.y + b.halfH);
+                ctx.moveTo(b.x + b.halfW - 16, b.y - b.halfH);
+                ctx.lineTo(b.x + b.halfW - 16, b.y + b.halfH);
+                ctx.stroke();
+
+                // Yellow Center divider
+                ctx.strokeStyle = '#ffeb3b';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([16, 20]);
                 ctx.beginPath();
                 ctx.moveTo(b.x, b.y - b.halfH);
                 ctx.lineTo(b.x, b.y + b.halfH);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Reinforced Concrete Parapets
+                ctx.fillStyle = '#263238';
+                ctx.fillRect(b.x - b.halfW, b.y - b.halfH, 14, b.h);
+                ctx.fillRect(b.x + b.halfW - 14, b.y - b.halfH, 14, b.h);
+
+                // Suspension Cables / Towers
+                ctx.strokeStyle = '#00e5ff';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(b.x - b.halfW + 7, b.y - b.halfH);
+                ctx.lineTo(b.x - b.halfW + 7, b.y + b.halfH);
+                ctx.moveTo(b.x + b.halfW - 7, b.y - b.halfH);
+                ctx.lineTo(b.x + b.halfW - 7, b.y + b.halfH);
                 ctx.stroke();
             }
         }

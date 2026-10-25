@@ -8,6 +8,7 @@ import { AbilityManager } from '../src/abilities.js';
 import { PoliceManager, PoliceCar } from '../src/police.js';
 import { GachaManager, GACHA_CONFIG } from '../src/gacha.js';
 import { storage } from '../src/storage.js';
+import { PlayerCar } from '../src/player.js';
 
 console.log('=== STARTING NEON GETAWAY TEST SUITE ===');
 
@@ -107,10 +108,11 @@ for (let i = 0; i < 3; i++) {
         assert.strictEqual(map.isInWater(bridge.x, bridge.y), false, 'Cars must be able to drive across bridges');
     }
 
-    // Verify >= 57% Destructible Environmental Objects
+    // Verify >= 57% and around 60% Destructible Environmental Objects
     const ratio = map.getDestructibleRatio();
     console.log(`  Map ${map.name}: Destructibles = ${map.destructibles.length}, Solid Props = ${map.solidProps.length}, Ratio = ${(ratio * 100).toFixed(1)}%`);
     assert(ratio >= 0.57, `At least 57% of eligible environmental objects must be destructible (was ${(ratio * 100).toFixed(1)}%)`);
+    assert(ratio <= 0.65, `Destructible ratio must be around 60% (was ${(ratio * 100).toFixed(1)}%)`);
 }
 console.log('✓ Three improved maps verified with clear roads, water barriers, drivable bridges, and >= 57% destructibles.');
 
@@ -196,18 +198,41 @@ const highDmg = damage.calculateCollisionDamage(450);
 assert(highDmg >= 40, `High speed wall impact damage must be substantial: ${highDmg}`);
 console.log('✓ Collision damage severity and contact cooldown verified.');
 
-// Test 6: Automatic Reverse Recovery
-console.log('Test 6: Verifying automatic reverse recovery...');
+// Test 6: Fast Automatic Reverse Recovery & Responsive Manual Reverse
+console.log('Test 6: Verifying fast automatic reverse recovery and responsive manual reverse speed...');
 const recovery = new RecoveryManager();
 const mockPlayer = { speed: 5, angle: 0 };
 
-for (let t = 0; t < 2.0; t += 0.1) {
+// Simulate 0.5s stuck against obstacle (CONFIG.RECOVERY_STUCK_TIME is 0.5s)
+for (let t = 0; t < 0.55; t += 0.1) {
     recovery.update(mockPlayer, true, true, 0.1);
 }
-assert.strictEqual(recovery.isActive(), true, 'Recovery must activate after ~2 seconds stuck against wall');
-assert(mockPlayer.speed < 0, 'Recovery must reverse the car backwards');
+assert.strictEqual(recovery.isActive(), true, 'Recovery must activate promptly after 0.5s stuck against obstacle');
+assert(mockPlayer.speed <= -200, `Recovery reverse speed must be swift (was ${mockPlayer.speed})`);
 assert.strictEqual(recovery.getMessage(), 'AUTO RECOVERY: REVERSING...');
-console.log('✓ Automatic reverse recovery verified.');
+
+// Recovery completes after duration and resets smoothly
+for (let t = 0; t < 0.9; t += 0.1) {
+    recovery.update(mockPlayer, false, true, 0.1);
+}
+assert.strictEqual(recovery.isActive(), false, 'Recovery must conclude smoothly after clearance');
+
+// Verify responsive manual reverse acceleration:
+const testPlayer = new PlayerCar('compact');
+testPlayer.speed = 100;
+const brakeInput = { isBraking: true, isAccelerating: false, isTurningLeft: false, isTurningRight: false };
+
+// Frame update with brake active: should rapidly bleed forward speed and accelerate in reverse
+for (let frame = 0; frame < 8; frame++) {
+    testPlayer.update(brakeInput, null, null, null, 0.05);
+}
+assert(testPlayer.speed < 0, `Manual reverse must swiftly engage negative speed (was ${testPlayer.speed.toFixed(1)})`);
+
+for (let frame = 0; frame < 15; frame++) {
+    testPlayer.update(brakeInput, null, null, null, 0.05);
+}
+assert(testPlayer.speed <= -180, `Manual reverse must rapidly reach brisk reverse velocity (was ${testPlayer.speed.toFixed(1)})`);
+console.log('✓ Fast automatic reverse recovery and responsive manual reverse verified.');
 
 // Test 7: Blue standard & Black advanced Police with 10-Minute Escalation
 console.log('Test 7: Verifying police pursuit and 10-minute escalation...');

@@ -46,17 +46,17 @@ export class RecoveryManager {
         if (this.isRecovering) {
             this.recoveryTimer -= dt;
 
-            // Apply reverse velocity and slight steering offset to back away
-            const reverseSpeed = -160;
+            // Apply brisk reverse velocity (-240) and active clearance steering offset
+            const reverseSpeed = -240;
             player.speed = reverseSpeed;
-            player.angle += this.recoveryTurnDirection * 0.9 * dt;
+            player.angle += this.recoveryTurnDirection * 1.5 * dt;
 
             // Stop reversing once timer completes or clearance is achieved
-            if (this.recoveryTimer <= 0 || (!isPressingSolid && this.recoveryTimer < CONFIG.RECOVERY_DURATION * 0.5)) {
+            if (this.recoveryTimer <= 0 || (!isPressingSolid && this.recoveryTimer < CONFIG.RECOVERY_DURATION * 0.4)) {
                 this.isRecovering = false;
                 this.stuckTimer = 0;
                 this.recoveryCooldownTimer = CONFIG.RECOVERY_COOLDOWN;
-                player.speed = 40; // Resume forward momentum smoothly
+                player.speed = 60; // Resume forward momentum smoothly
             }
             return;
         }
@@ -65,20 +65,20 @@ export class RecoveryManager {
         // Safeguards:
         // - Must be pressing against a solid obstacle
         // - Player must be attempting forward movement
-        // - Actual movement must remain extremely small (below epsilon)
-        // - Recovery cooldown must be zero (prevents endless oscillation)
-        const isBlocked = isPressingSolid && isAttemptingMove && Math.abs(player.speed) < CONFIG.RECOVERY_VELOCITY_EPSILON;
+        // - Actual movement must remain small
+        // - If player is already reversing manually (player.speed < 0), do not trigger auto recovery
+        const isBlocked = isPressingSolid && isAttemptingMove && player.speed >= -10 && player.speed < CONFIG.RECOVERY_VELOCITY_EPSILON;
 
         if (isBlocked && this.recoveryCooldownTimer <= 0) {
             this.stuckTimer += dt;
 
-            // Condition continues for ~2 seconds
+            // Trigger quickly after 0.5s stuck
             if (this.stuckTimer >= CONFIG.RECOVERY_STUCK_TIME) {
                 this.activateRecovery(player);
             }
         } else {
             // Gradually decay stuck timer if moving or free
-            this.stuckTimer = Math.max(0, this.stuckTimer - dt * 2.0);
+            this.stuckTimer = Math.max(0, this.stuckTimer - dt * 3.0);
         }
     }
 
@@ -87,7 +87,7 @@ export class RecoveryManager {
         this.recoveryTimer = CONFIG.RECOVERY_DURATION;
         this.recoveryTurnDirection = Math.random() > 0.5 ? 1 : -1;
         this.message = 'AUTO RECOVERY: REVERSING...';
-        this.messageTimer = CONFIG.RECOVERY_DURATION + 0.8;
+        this.messageTimer = CONFIG.RECOVERY_DURATION + 0.6;
     }
 
     isActive() {

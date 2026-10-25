@@ -162,17 +162,26 @@ export class PlayerCar {
             targetSpeed = (this.isTank ? 440 : this.boostSpeed) * terrainFriction;
         }
 
-        // Automatic forward cruising drive
         const targetAccel = this.isTank ? 380 : this.accel;
-        if (this.speed < targetSpeed) {
-            this.speed = Math.min(targetSpeed, this.speed + targetAccel * dt);
-        } else if (this.speed > targetSpeed) {
-            this.speed = Math.max(targetSpeed, this.speed - targetAccel * 1.5 * dt);
-        }
 
-        // Braking / Reversing when manual brake key is held
+        // Responsive Braking & Fast Reverse Movement
         if (input.isBraking) {
-            this.speed = Math.max(-120, this.speed - targetAccel * 2.5 * dt);
+            // Cut forward drive immediately when player presses brake / reverse
+            if (this.speed > 10) {
+                // Immediate heavy braking to kill forward momentum
+                this.speed = Math.max(0, this.speed - targetAccel * 4.5 * dt);
+            } else {
+                // Swift, noticeably fast reverse acceleration up to -240
+                const maxReverseSpeed = -240;
+                this.speed = Math.max(maxReverseSpeed, this.speed - targetAccel * 3.2 * dt);
+            }
+        } else {
+            // Automatic forward cruising drive (only when not braking/reversing)
+            if (this.speed < targetSpeed) {
+                this.speed = Math.min(targetSpeed, this.speed + targetAccel * dt);
+            } else if (this.speed > targetSpeed) {
+                this.speed = Math.max(targetSpeed, this.speed - targetAccel * 1.5 * dt);
+            }
         }
 
         // Steering input
@@ -189,8 +198,10 @@ export class PlayerCar {
 
         // Turn rate adjusted by speed and map surface
         const currentTurnRate = (this.isTank ? 2.4 : this.turnRate) * (map ? map.surfaceTraction : 1.0);
-        const speedTurnScale = Math.min(1.0, Math.abs(this.speed) / 120);
-        const turnDelta = steerInput * currentTurnRate * speedTurnScale * dt;
+        const speedTurnScale = Math.min(1.0, Math.abs(this.speed) / 70); // Responsive turn scaling even at lower speeds
+        // In reverse (speed < 0), invert steering so the front of the car swings away cleanly
+        const reverseSteerFactor = this.speed < 0 ? -1.0 : 1.0;
+        const turnDelta = steerInput * currentTurnRate * speedTurnScale * dt * reverseSteerFactor;
         this.angle += turnDelta;
 
         // Drifting calculation with vehicle driftMultiplier

@@ -42,24 +42,26 @@ export class CollisionEngine {
             const minDist = player.radius + d.radius;
 
             if (dist < minDist) {
-                // Tiered breaking threshold:
-                // Heavy cars (cruiser) or tank mode or boosting lower the required speed threshold
-                let threshold = d.reqSpeed || 100;
-                if (player.isTank) threshold = 0;
-                else if (player.carId === 'cruiser') threshold *= 0.55;
+                // Calculate impact damage dealt to the object based on kinetic speed and vehicle ram rating
+                const impactForce = Math.max(30, currentSpeed);
+                const ramMultiplier = player.isTank ? 10 : (player.carId === 'cruiser' ? 2.5 : 1.0);
+                const damageDealt = impactForce * ramMultiplier;
+                d.hp -= damageDealt;
 
-                const hasSufficientForce = currentSpeed >= threshold || player.isTank;
+                // Light objects break on any contact. Medium & Heavy break when HP depleted or sufficient speed
+                const shouldBreak = d.tier === 'light' || d.hp <= 0 || player.isTank || player.carId === 'cruiser' || currentSpeed >= (d.reqSpeed || 30);
 
-                if (hasSufficientForce) {
-                    // Destroy object
+                if (shouldBreak) {
+                    // Destroy object immediately - disappears/breaks into debris
                     d.destroyed = true;
+                    d.destroyTime = performance.now();
 
-                    // Award score, tiered cash, and combo via scoringManager
+                    // Award score and tiered cash once
                     const rewards = scoringManager.recordDestruction(d.cashReward, d.scoreReward);
 
                     audio.playSmash(d.type);
                     audio.playCashChime();
-                    camera.shake(player.isTank ? 9 : (d.tier === 'heavy' ? 8 : 4));
+                    camera.shake(player.isTank ? 9 : (d.tier === 'heavy' ? 7 : 4));
 
                     particleManager.spawnDebris(d.x, d.y, d.type, player.isTank ? 18 : 12);
                     particleManager.addFloatingText(`+$${rewards.cashGain}`, d.x, d.y, '#f1c40f', 18 + Math.min(10, rewards.combo * 2));
@@ -68,25 +70,28 @@ export class CollisionEngine {
                         particleManager.addFloatingText(`x${rewards.combo} COMBO!`, player.x, player.y - 28, '#ff4757', 20, true);
                     }
 
-                    policeManager.addHeat(d.tier === 'heavy' ? 4 : 2);
+                    policeManager.addHeat(d.tier === 'heavy' ? 3 : 1.5);
 
-                    // Speed penalty upon breaking (except tank or heavy cruiser)
+                    // Minor realistic momentum friction without trapping or reversing the car
                     if (!player.isTank && player.carId !== 'cruiser') {
-                        const slowFactor = d.tier === 'heavy' ? 0.88 : (d.tier === 'medium' ? 0.94 : 0.98);
+                        const slowFactor = d.tier === 'heavy' ? 0.92 : 0.97;
                         player.speed *= slowFactor;
                     }
                 } else {
-                    // Insufficient speed to break obstacle -> bounce off
+                    // Heavy obstacle taking partial damage at low impact speed
                     this.isCollidingWithSolid = true;
-                    const angle = Math.atan2(player.y - d.y, player.x - d.x);
-                    player.x = d.x + Math.cos(angle) * minDist;
-                    player.y = d.y + Math.sin(angle) * minDist;
-                    player.speed *= -0.3;
+                    const normX = (player.x - d.x) / (dist || 1);
+                    const normY = (player.y - d.y) / (dist || 1);
+                    player.x = d.x + normX * (minDist + 2);
+                    player.y = d.y + normY * (minDist + 2);
 
-                    audio.playHit();
-                    camera.shake(4);
-                    particleManager.spawnSparks(player.x, player.y, 8);
-                    particleManager.addFloatingText('NEED MORE SPEED!', player.x, player.y - 22, '#f39c12', 14);
+                    if (player.speed > 0) {
+                        player.speed = -Math.min(35, player.speed * 0.25);
+                        audio.playHit();
+                        camera.shake(4);
+                        particleManager.spawnSparks(player.x, player.y, 8);
+                        particleManager.addFloatingText('CRACKED!', player.x, player.y - 22, '#f39c12', 14);
+                    }
                 }
             }
         }
@@ -105,20 +110,23 @@ export class CollisionEngine {
 
                 const normX = (player.x - p.x) / dist;
                 const normY = (player.y - p.y) / dist;
-                player.x = p.x + normX * minDist;
-                player.y = p.y + normY * minDist;
+                player.x = p.x + normX * (minDist + 2.0);
+                player.y = p.y + normY * (minDist + 2.0);
 
-                const preImpactSpeed = player.speed;
-                const damageDealt = player.takeCollisionDamage(p.id, Math.abs(preImpactSpeed));
+                if (player.speed > 0) {
+                    const preImpactSpeed = player.speed;
+                    const damageDealt = player.takeCollisionDamage(p.id, Math.abs(preImpactSpeed));
 
-                player.speed *= -0.35;
-                audio.playHit();
-                camera.shake(Math.min(12, 4 + Math.abs(preImpactSpeed) * 0.02));
-                particleManager.spawnSparks(player.x, player.y, 10);
+                    player.speed = -Math.min(45, preImpactSpeed * 0.3);
+                    audio.playHit();
+                    camera.shake(Math.min(12, 4 + Math.abs(preImpactSpeed) * 0.02));
+                    particleManager.spawnSparks(player.x, player.y, 10);
 
-                if (damageDealt > 0) {
-                    particleManager.addFloatingText(`-${damageDealt} HP`, player.x, player.y - 20, '#e74c3c', 16);
+                    if (damageDealt > 0) {
+                        particleManager.addFloatingText(`-${damageDealt} HP`, player.x, player.y - 20, '#e74c3c', 16);
+                    }
                 }
+                // When player.speed <= 0 (actively reversing), allow the car to back away freely
             }
         }
     }
@@ -137,25 +145,28 @@ export class CollisionEngine {
 
                 const overlapX = halfW - Math.abs(dx);
                 const overlapY = halfH - Math.abs(dy);
+                const pushMargin = 2.0;
 
                 if (overlapX < overlapY) {
-                    player.x += Math.sign(dx) * overlapX;
+                    player.x += Math.sign(dx) * (overlapX + pushMargin);
                 } else {
-                    player.y += Math.sign(dy) * overlapY;
+                    player.y += Math.sign(dy) * (overlapY + pushMargin);
                 }
 
-                // Substantial impact damage based on collision speed
-                const preImpactSpeed = player.speed;
-                const damageDealt = player.takeCollisionDamage(b.id, preImpactSpeed);
+                if (player.speed > 0) {
+                    const preImpactSpeed = player.speed;
+                    const damageDealt = player.takeCollisionDamage(b.id, preImpactSpeed);
 
-                player.speed *= -0.4; // Bounce response
-                audio.playHit();
-                camera.shake(Math.min(18, 6 + Math.abs(preImpactSpeed) * 0.025));
-                particleManager.spawnSparks(player.x, player.y, 14);
+                    player.speed = -Math.min(50, preImpactSpeed * 0.3);
+                    audio.playHit();
+                    camera.shake(Math.min(18, 6 + Math.abs(preImpactSpeed) * 0.025));
+                    particleManager.spawnSparks(player.x, player.y, 14);
 
-                if (damageDealt > 0) {
-                    particleManager.addFloatingText(`-${damageDealt} HP`, player.x, player.y - 20, '#e74c3c', 16);
+                    if (damageDealt > 0) {
+                        particleManager.addFloatingText(`-${damageDealt} HP`, player.x, player.y - 20, '#e74c3c', 16);
+                    }
                 }
+                // When player.speed <= 0 (actively reversing), allow the car to back away freely
             }
         }
     }

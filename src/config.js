@@ -14,11 +14,11 @@ export const CONFIG = {
     ESCALATION_INTERVAL: 600,      // Every 10 minutes thereafter
     MAX_ACTIVE_POLICE: 6,
 
-    // Automatic reverse recovery thresholds
-    RECOVERY_STUCK_TIME: 1.8,       // Seconds pressing against obstacle
-    RECOVERY_DURATION: 1.2,         // Seconds reversing away
-    RECOVERY_COOLDOWN: 3.5,         // Seconds before recovery can trigger again
-    RECOVERY_VELOCITY_EPSILON: 15   // Movement below this counts as blocked
+    // Automatic reverse recovery thresholds (quick, responsive recovery)
+    RECOVERY_STUCK_TIME: 0.5,       // Seconds pressing against obstacle before auto-recovery (fast recovery)
+    RECOVERY_DURATION: 0.8,         // Seconds reversing away
+    RECOVERY_COOLDOWN: 0.8,         // Seconds before recovery can trigger again
+    RECOVERY_VELOCITY_EPSILON: 25   // Movement below this counts as blocked
 };
 
 export const CAR_MODELS = {
