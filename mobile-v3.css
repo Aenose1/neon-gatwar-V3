@@ -1,0 +1,292 @@
+/* mobile-v3.css - Dedicated Mobile Touch Controls, Virtual Joystick, and Responsive Styles for V3 */
+
+/* 1. Global Mobile & Touch Viewport Rules */
+html, body {
+    touch-action: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    overscroll-behavior: none;
+    overflow: hidden;
+}
+
+#game-canvas {
+    touch-action: none;
+    cursor: crosshair;
+}
+
+/* 2. Mobile Touch Controls Overlay */
+#mobile-controls-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 60;
+    display: none; /* Displayed dynamically on touch devices */
+}
+
+body.touch-active-mode #mobile-controls-overlay {
+    display: block;
+}
+
+/* 3. Bottom-Right Action Buttons Cluster */
+.mobile-actions-cluster {
+    position: absolute;
+    right: max(16px, env(safe-area-inset-right));
+    bottom: max(18px, env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-end;
+    pointer-events: none;
+}
+
+.touch-btn {
+    pointer-events: auto;
+    touch-action: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 800;
+    border: 2px solid;
+    transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.08s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.touch-btn:active,
+.touch-btn.touch-active {
+    transform: scale(0.92);
+}
+
+/* Boost Button (Cyan Flame) */
+#btn-touch-boost {
+    width: 68px;
+    height: 68px;
+    background: linear-gradient(135deg, rgba(0, 210, 255, 0.35), rgba(0, 100, 200, 0.25));
+    border-color: #00d2ff;
+    color: #ffffff;
+    box-shadow: 0 0 14px rgba(0, 210, 255, 0.45);
+}
+
+#btn-touch-boost:active,
+#btn-touch-boost.touch-active {
+    background: linear-gradient(135deg, rgba(0, 210, 255, 0.75), rgba(0, 160, 255, 0.55));
+    box-shadow: 0 0 24px #00d2ff, 0 0 40px rgba(0, 210, 255, 0.6);
+}
+
+/* Reverse / Brake Button (Red / Amber) */
+#btn-touch-brake {
+    width: 62px;
+    height: 62px;
+    background: linear-gradient(135deg, rgba(255, 71, 87, 0.35), rgba(200, 30, 50, 0.25));
+    border-color: #ff4757;
+    color: #ffffff;
+    box-shadow: 0 0 14px rgba(255, 71, 87, 0.45);
+}
+
+#btn-touch-brake:active,
+#btn-touch-brake.touch-active {
+    background: linear-gradient(135deg, rgba(255, 71, 87, 0.75), rgba(220, 20, 60, 0.55));
+    box-shadow: 0 0 24px #ff4757, 0 0 40px rgba(255, 71, 87, 0.6);
+}
+
+/* Drift / Handbrake Button (Magenta) */
+#btn-touch-drift {
+    width: 54px;
+    height: 54px;
+    background: linear-gradient(135deg, rgba(255, 0, 127, 0.35), rgba(160, 0, 90, 0.25));
+    border-color: #ff007f;
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(255, 0, 127, 0.45);
+}
+
+#btn-touch-drift:active,
+#btn-touch-drift.touch-active {
+    background: linear-gradient(135deg, rgba(255, 0, 127, 0.75), rgba(200, 0, 120, 0.55));
+    box-shadow: 0 0 22px #ff007f, 0 0 35px rgba(255, 0, 127, 0.6);
+}
+
+.touch-btn-icon {
+    font-size: 1.4rem;
+    line-height: 1;
+    pointer-events: none;
+}
+
+.touch-btn-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.8px;
+    margin-top: 2px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+    pointer-events: none;
+}
+
+/* 4. Left-Hand Virtual Joystick Zone Hint */
+.mobile-joystick-hint {
+    position: absolute;
+    left: max(20px, env(safe-area-inset-left));
+    bottom: max(24px, env(safe-area-inset-bottom));
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    border: 1.5px dashed rgba(0, 210, 255, 0.25);
+    background: radial-gradient(circle, rgba(0, 210, 255, 0.05) 0%, transparent 70%);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(0, 210, 255, 0.4);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-align: center;
+    animation: joystickPulse 3s infinite ease-in-out;
+}
+
+@keyframes joystickPulse {
+    0%, 100% { opacity: 0.35; transform: scale(1); }
+    50% { opacity: 0.65; transform: scale(1.04); }
+}
+
+/* 5. Mobile Orientation Notice (Optional Landscape Recommended Toast) */
+.orientation-hint {
+    display: none;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(10, 16, 26, 0.92);
+    border: 1px solid rgba(0, 210, 255, 0.4);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 0.75rem;
+    color: #00d2ff;
+    z-index: 100;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+@media (orientation: portrait) and (max-width: 600px) {
+    .orientation-hint {
+        display: block;
+    }
+}
+
+/* 6. Responsive HUD & Ability Dock for Mobile */
+@media (max-width: 768px) {
+    .hud-top-bar {
+        padding: 6px 10px;
+        gap: 6px;
+    }
+
+    .hud-cash-box, .hud-score-box {
+        font-size: 0.85rem;
+        padding: 4px 8px;
+    }
+
+    .hud-heat-label {
+        font-size: 0.65rem;
+    }
+
+    .hud-heat-stars span {
+        font-size: 1.1rem;
+    }
+
+    .hud-speed-text {
+        font-size: 1.1rem;
+    }
+
+    .hud-health-wrapper {
+        min-width: 90px;
+    }
+
+    .hud-health-header {
+        font-size: 0.62rem;
+    }
+
+    /* Ability Dock Centered on Bottom */
+    .hud-bottom-bar {
+        bottom: max(14px, env(safe-area-inset-bottom));
+    }
+
+    .ability-dock {
+        gap: 8px;
+        padding: 4px 8px;
+    }
+
+    .ability-btn {
+        width: 52px;
+        height: 52px;
+    }
+
+    .ability-icon {
+        font-size: 1.2rem;
+    }
+
+    .ability-key-tag {
+        font-size: 0.55rem;
+    }
+
+    .cd-text {
+        font-size: 0.62rem;
+    }
+
+    /* Action buttons scale slightly for compact phones */
+    #btn-touch-boost {
+        width: 62px;
+        height: 62px;
+    }
+
+    #btn-touch-brake {
+        width: 56px;
+        height: 56px;
+    }
+
+    #btn-touch-drift {
+        width: 48px;
+        height: 48px;
+    }
+
+    .touch-btn-icon {
+        font-size: 1.25rem;
+    }
+}
+
+/* Landscape Phone Viewport (e.g. 844x390, 915x412) */
+@media (max-height: 480px) and (orientation: landscape) {
+    .hud-top-bar {
+        padding: 4px 12px;
+    }
+
+    .hud-bottom-bar {
+        bottom: 8px;
+    }
+
+    .ability-dock {
+        transform: scale(0.85);
+        transform-origin: bottom center;
+    }
+
+    .mobile-actions-cluster {
+        bottom: 10px;
+        right: max(12px, env(safe-area-inset-right));
+        gap: 8px;
+    }
+
+    .touch-btn {
+        transform: scale(0.88);
+    }
+
+    .touch-btn:active,
+    .touch-btn.touch-active {
+        transform: scale(0.8);
+    }
+}

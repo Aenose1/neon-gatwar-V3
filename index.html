@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Neon Getaway: Destruction Run</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="mobile-v3.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏎️</text></svg>">
 </head>
 <body>
@@ -307,6 +308,33 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Mobile Touch Controls Overlay (Virtual Joystick & Action Buttons) -->
+            <div id="mobile-controls-overlay">
+                <!-- Left Virtual Joystick Zone Indicator -->
+                <div id="mobile-joystick-zone" class="mobile-joystick-hint">
+                    <span>🕹️ DRAG TO STEER</span>
+                </div>
+
+                <!-- Right Action Buttons Cluster -->
+                <div class="mobile-actions-cluster">
+                    <button id="btn-touch-boost" class="touch-btn" aria-label="Nitro Boost">
+                        <span class="touch-btn-icon">⚡</span>
+                        <span class="touch-btn-label">BOOST</span>
+                    </button>
+                    <button id="btn-touch-brake" class="touch-btn" aria-label="Reverse and Brake">
+                        <span class="touch-btn-icon">🛑</span>
+                        <span class="touch-btn-label">REVERSE</span>
+                    </button>
+                    <button id="btn-touch-drift" class="touch-btn" aria-label="Drift Handbrake">
+                        <span class="touch-btn-icon">🏎️</span>
+                        <span class="touch-btn-label">DRIFT</span>
+                    </button>
+                </div>
+
+                <!-- Landscape orientation tip if in portrait -->
+                <div class="orientation-hint">💡 Rotate to landscape for best widescreen view</div>
+            </div>
         </div>
 
         <!-- 5. PAUSE MODAL -->
@@ -377,11 +405,12 @@
                         <li><strong>Pause:</strong> Press Esc or P.</li>
                     </ul>
 
-                    <h3>📱 Mobile Controls (One Circular Touch Ring)</h3>
+                    <h3>📱 Mobile Controls</h3>
                     <ul>
-                        <li><strong>Circular Touch Ring (Bottom-Right):</strong> Touch and drag within or around the translucent circle to steer.</li>
-                        <li><strong>Automatic Drive:</strong> Vehicle moves forward automatically without holding an accelerator.</li>
-                        <li><strong>Abilities (Bottom-Left):</strong> Tap the Tank, Oil Slick, or Electric Shock buttons.</li>
+                        <li><strong>Virtual Joystick (Left Side):</strong> Touch & drag on the left half of the screen to steer smoothly. Push up for nitro boost, pull down for fast reverse braking!</li>
+                        <li><strong>Direct Touch-To-Steer:</strong> Tap or drag anywhere on screen to point your car directly towards your finger (just like the PC mouse cursor).</li>
+                        <li><strong>Right Buttons:</strong> Hold <strong>⚡ BOOST</strong> for nitro speed, <strong>🛑 REVERSE</strong> for immediate braking & swift backward escape, and <strong>🏎️ DRIFT</strong> for handbrake turns.</li>
+                        <li><strong>Abilities (Bottom):</strong> Tap 1 Tank, 2 Oil Slick, or 3 Electric Shock to trigger special powers.</li>
                     </ul>
 
                     <h3>💥 Destruction & Damage</h3>

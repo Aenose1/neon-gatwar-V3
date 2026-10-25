@@ -10,6 +10,9 @@ import { GachaManager, GACHA_CONFIG } from '../src/gacha.js';
 import { storage } from '../src/storage.js';
 import { PlayerCar } from '../src/player.js';
 import { CollisionEngine } from '../src/collisions.js';
+import { ControlsManager } from '../src/controls.js';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 console.log('=== STARTING NEON GETAWAY TEST SUITE ===');
 
@@ -358,4 +361,58 @@ assert.strictEqual(abilities.abilities.oil.timer, 0, 'Oil cooldown must remain u
 assert.strictEqual(abilities.abilities.emp.timer, 0, 'EMP cooldown must remain unaffected');
 console.log('✓ Three abilities with independent 150s cooldowns verified.');
 
-console.log('=== ALL NEON GETAWAY TESTS PASSED (8/8) ===');
+// Test 9: Mobile Virtual Joystick, Direct Touch Steer, Action Buttons, and mobile-v3.css
+console.log('Test 9: Verifying mobile virtual joystick, multi-touch buttons, and mobile-v3.css...');
+const controls = new ControlsManager(null);
+assert.strictEqual(typeof controls.isBoosting, 'boolean', 'isBoosting getter must return boolean');
+assert.strictEqual(typeof controls.isBraking, 'boolean', 'isBraking getter must return boolean');
+assert.strictEqual(typeof controls.isHandbrake, 'boolean', 'isHandbrake getter must return boolean');
+
+// Test Virtual Joystick calculation
+controls.joystick.originX = 100;
+controls.joystick.originY = 400;
+controls.joystick.radius = 60;
+controls.updateJoystick(150, 400); // Deflect right by 50px
+assert(controls.steerAmount > 0.5, 'Right joystick deflection must produce positive steerAmount');
+assert.strictEqual(controls.hasSteerVector, true);
+
+// Test Joystick Push Up (Boost)
+controls.updateJoystick(100, 360); // Deflect UP by 40px (-0.66 normY)
+assert.strictEqual(controls.isBoosting, true, 'Pushing joystick up must activate isBoosting');
+assert.strictEqual(controls.isBraking, false);
+
+// Test Joystick Pull Down (Reverse)
+controls.updateJoystick(100, 440); // Deflect DOWN by 40px (+0.66 normY)
+assert.strictEqual(controls.isBraking, true, 'Pulling joystick down must activate isBraking');
+assert.strictEqual(controls.isBoosting, false);
+
+controls.resetJoystick();
+assert.strictEqual(controls.steerAmount, 0, 'Reset joystick must return steerAmount to 0');
+assert.strictEqual(controls.isBoosting, false);
+assert.strictEqual(controls.isBraking, false);
+
+// Test Mobile Action Buttons
+controls.btnBoosting = true;
+assert.strictEqual(controls.isBoosting, true, 'btnBoosting must toggle isBoosting');
+controls.btnBoosting = false;
+
+controls.btnBraking = true;
+assert.strictEqual(controls.isBraking, true, 'btnBraking must toggle isBraking');
+controls.btnBraking = false;
+
+controls.btnDrifting = true;
+assert.strictEqual(controls.isHandbrake, true, 'btnDrifting must toggle isHandbrake');
+controls.btnDrifting = false;
+
+// Verify separate mobile-v3.css exists and is linked in index.html
+const mobileCssPath = fileURLToPath(new URL('../mobile-v3.css', import.meta.url));
+assert(fs.existsSync(mobileCssPath), 'mobile-v3.css must exist as a dedicated stylesheet');
+const indexHtmlContent = fs.readFileSync(fileURLToPath(new URL('../index.html', import.meta.url)), 'utf8');
+assert(indexHtmlContent.includes('mobile-v3.css'), 'index.html must link mobile-v3.css');
+assert(indexHtmlContent.includes('id="btn-touch-boost"'), 'index.html must contain mobile boost button');
+assert(indexHtmlContent.includes('id="btn-touch-brake"'), 'index.html must contain mobile reverse/brake button');
+assert(indexHtmlContent.includes('id="btn-touch-drift"'), 'index.html must contain mobile drift button');
+console.log('✓ Mobile virtual joystick, multi-touch buttons, and mobile-v3.css verified.');
+
+console.log('=== ALL NEON GETAWAY TESTS PASSED (9/9) ===');
+

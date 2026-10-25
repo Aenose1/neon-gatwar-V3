@@ -204,9 +204,27 @@ export class Game {
         });
 
         // Ability Click/Touch Triggers
-        this.btnTank?.addEventListener('click', () => this.triggerAbility('tank'));
-        this.btnOil?.addEventListener('click', () => this.triggerAbility('oil'));
-        this.btnEmp?.addEventListener('click', () => this.triggerAbility('emp'));
+        const setupAbilityTrigger = (btnEl, abilityName) => {
+            if (!btnEl) return;
+            btnEl.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.triggerAbility(abilityName);
+            });
+            btnEl.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                audio.ensureContext();
+                this.triggerAbility(abilityName);
+            }, { passive: false });
+        };
+
+        setupAbilityTrigger(this.btnTank, 'tank');
+        setupAbilityTrigger(this.btnOil, 'oil');
+        setupAbilityTrigger(this.btnEmp, 'emp');
+
+        // Global audio unlock on first mobile touch
+        window.addEventListener('touchstart', () => {
+            audio.ensureContext();
+        }, { once: true, passive: true });
     }
 
     updateSoundIcons() {
@@ -468,8 +486,8 @@ export class Game {
             this.camera
         );
 
-        // 4. Automatic Reverse Recovery System
-        const isAttemptingMove = !this.controls.isBraking && (this.controls.isBoosting || Math.abs(this.player.speed) > 0 || !this.controls.isTouchDevice);
+        // 4. Automatic Reverse Recovery System (triggers consistently on both mobile & PC if stuck)
+        const isAttemptingMove = !this.controls.isBraking;
         this.recovery.update(this.player, this.collisions.isCollidingWithSolid, isAttemptingMove, dt);
 
         // 5. Update HUD (Health bar, Abilities with 150s cooldowns, Cash, Combo, Notifications)
