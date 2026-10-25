@@ -531,9 +531,9 @@ export class GameMap {
             if (this.isInWater(x, y)) return;
 
             let w = 24, h = 24, radius = 16;
-            if (type === 'bollard') { w = 16; h = 16; radius = 12; }
+            if (type === 'barrier_block') { w = 34; h = 20; radius = 18; }
             else if (type === 'transformer') { w = 32; h = 32; radius = 20; }
-            else if (type === 'pylon') { w = 36; h = 36; radius = 22; }
+            else if (type === 'utility_box') { w = 26; h = 26; radius = 16; }
             else if (type === 'monument') { w = 40; h = 40; radius = 24; }
 
             this.solidProps.push({
@@ -586,15 +586,15 @@ export class GameMap {
                         addDestructible('crate', px - normalX * offset, py - normalY * offset, 'light');
                     } else if (cycle === 1) {
                         addDestructible('barrel', px + normalX * (offset + 12), py + normalY * (offset + 12), 'medium');
-                        addSolidProp('bollard', px - normalX * (offset + 12), py - normalY * (offset + 12));
+                        addSolidProp('barrier_block', px - normalX * (offset + 12), py - normalY * (offset + 12));
                     } else if (cycle === 2) {
-                        addSolidProp('pylon', px + normalX * (offset + 16), py + normalY * (offset + 16));
+                        addSolidProp('utility_box', px + normalX * (offset + 16), py + normalY * (offset + 16));
                         addDestructible('fence', px - normalX * offset, py - normalY * offset, 'medium');
                     } else if (cycle === 3) {
                         addDestructible('crate', px + normalX * offset, py + normalY * offset, 'light');
-                        addSolidProp('bollard', px - normalX * (offset + 12), py - normalY * (offset + 12));
+                        addSolidProp('barrier_block', px - normalX * (offset + 12), py - normalY * (offset + 12));
                     } else { // cycle === 4
-                        addSolidProp('pylon', px + normalX * (offset + 16), py + normalY * (offset + 16));
+                        addSolidProp('utility_box', px + normalX * (offset + 16), py + normalY * (offset + 16));
                         addDestructible('barrel', px - normalX * (offset + 12), py - normalY * (offset + 12), 'medium');
                     }
                 } else { // industrial
@@ -603,13 +603,13 @@ export class GameMap {
                         addDestructible('barrel', px - normalX * offset, py - normalY * offset, 'medium');
                     } else if (cycle === 1) {
                         addDestructible('container_small', px + normalX * (offset + 16), py + normalY * (offset + 16), 'heavy');
-                        addSolidProp('pylon', px - normalX * (offset + 16), py - normalY * (offset + 16));
+                        addSolidProp('barrier_block', px - normalX * (offset + 16), py - normalY * (offset + 16));
                     } else if (cycle === 2) {
                         addSolidProp('transformer', px + normalX * (offset + 16), py + normalY * (offset + 16));
                         addDestructible('barrier', px - normalX * offset, py - normalY * offset, 'heavy');
                     } else if (cycle === 3) {
                         addDestructible('barrel', px + normalX * offset, py + normalY * offset, 'medium');
-                        addSolidProp('pylon', px - normalX * (offset + 16), py - normalY * (offset + 16));
+                        addSolidProp('barrier_block', px - normalX * (offset + 16), py - normalY * (offset + 16));
                     } else { // cycle === 4
                         addSolidProp('transformer', px + normalX * (offset + 16), py + normalY * (offset + 16));
                         addDestructible('container_small', px - normalX * (offset + 16), py - normalY * (offset + 16), 'heavy');
@@ -638,12 +638,12 @@ export class GameMap {
                 addSolidProp('monument', pt.x + 125, pt.y + 125);
             } else if (this.theme === 'river') {
                 addDestructible('barrel', pt.x + 95, pt.y - 95, 'medium');
-                addSolidProp('bollard', pt.x - 95, pt.y + 95);
-                addSolidProp('pylon', pt.x + 125, pt.y + 125);
+                addSolidProp('barrier_block', pt.x - 95, pt.y + 95);
+                addSolidProp('utility_box', pt.x + 125, pt.y + 125);
             } else {
                 addDestructible('barrier', pt.x + 95, pt.y - 95, 'heavy');
                 addSolidProp('transformer', pt.x - 95, pt.y + 95);
-                addSolidProp('pylon', pt.x + 125, pt.y + 125);
+                addSolidProp('barrier_block', pt.x + 125, pt.y + 125);
             }
         }
 
@@ -658,12 +658,12 @@ export class GameMap {
                 addSolidProp('transformer', b.x + b.halfW + 40, b.y - b.halfH - 40);
             } else if (this.theme === 'river') {
                 addDestructible('barrel', b.x, b.y + b.halfH + 28, 'medium');
-                addSolidProp('bollard', b.x - b.halfW - 35, b.y - b.halfH - 35);
-                addSolidProp('pylon', b.x + b.halfW + 35, b.y + b.halfH + 35);
+                addSolidProp('barrier_block', b.x - b.halfW - 35, b.y - b.halfH - 35);
+                addSolidProp('utility_box', b.x + b.halfW + 35, b.y + b.halfH + 35);
             } else {
                 addDestructible('oil_tank', b.x, b.y + b.halfH + 32, 'heavy');
                 addSolidProp('transformer', b.x - b.halfW - 38, b.y - b.halfH - 38);
-                addSolidProp('pylon', b.x + b.halfW + 38, b.y + b.halfH + 38);
+                addSolidProp('barrier_block', b.x + b.halfW + 38, b.y + b.halfH + 38);
             }
         }
 
@@ -1071,32 +1071,43 @@ export class GameMap {
         for (const p of this.solidProps) {
             if (!camera.isVisible(p.x, p.y, p.radius + 40)) continue;
 
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-            ctx.beginPath();
-            ctx.arc(p.x + 4, p.y + 4, p.radius, 0, Math.PI * 2);
-            ctx.fill();
+            // Clean rectangular drop shadow (zero circular shapes)
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+            ctx.fillRect(p.x - p.w / 2 + 4, p.y - p.h / 2 + 4, p.w, p.h);
 
-            if (p.type === 'bollard') {
-                ctx.fillStyle = '#2f3542';
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.fillStyle = '#ff4757';
-                ctx.fillRect(p.x - 4, p.y - 4, 8, 8);
-            } else if (p.type === 'transformer') {
-                ctx.fillStyle = '#353b48';
+            if (p.type === 'transformer') {
+                ctx.fillStyle = '#2d3436';
                 ctx.fillRect(p.x - p.w / 2, p.y - p.h / 2, p.w, p.h);
                 ctx.strokeStyle = '#f1c40f';
+                ctx.lineWidth = 2.5;
+                ctx.strokeRect(p.x - p.w / 2, p.y - p.h / 2, p.w, p.h);
+                // Warning indicator
+                ctx.fillStyle = '#f1c40f';
+                ctx.fillRect(p.x - 3, p.y - 6, 6, 12);
+            } else if (p.type === 'utility_box') {
+                ctx.fillStyle = '#34495e';
+                ctx.fillRect(p.x - p.w / 2, p.y - p.h / 2, p.w, p.h);
+                ctx.strokeStyle = '#00d2ff';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(p.x - p.w / 2, p.y - p.h / 2, p.w, p.h);
-            } else if (p.type === 'pylon') {
-                ctx.fillStyle = '#718093';
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.strokeStyle = '#e74c3c';
-                ctx.lineWidth = 3;
-                ctx.stroke();
+                ctx.fillStyle = '#1abc9c';
+                ctx.fillRect(p.x - 5, p.y - 2, 10, 4);
+            } else if (p.type === 'barrier_block') {
+                ctx.fillStyle = '#7f8c8d';
+                ctx.fillRect(p.x - p.w / 2, p.y - p.h / 2, p.w, p.h);
+                ctx.strokeStyle = '#bdc3c7';
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(p.x - p.w / 2, p.y - p.h / 2, p.w, p.h);
+                // Red & White hazard reflective stripes
+                ctx.fillStyle = '#e74c3c';
+                ctx.fillRect(p.x - 11, p.y - p.h / 2, 6, p.h);
+                ctx.fillRect(p.x + 5, p.y - p.h / 2, 6, p.h);
+            } else if (p.type === 'monument') {
+                ctx.fillStyle = '#57606f';
+                ctx.fillRect(p.x - p.w / 2, p.y - p.h / 2, p.w, p.h);
+                ctx.strokeStyle = '#747d8c';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(p.x - p.w / 2, p.y - p.h / 2, p.w, p.h);
             } else {
                 ctx.fillStyle = '#747d8c';
                 ctx.fillRect(p.x - p.w / 2, p.y - p.h / 2, p.w, p.h);

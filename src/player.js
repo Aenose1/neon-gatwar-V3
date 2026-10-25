@@ -383,6 +383,25 @@ export class PlayerCar {
             case 'hatchback':
                 ctx.roundRect(-halfL, -halfW, l, w, 4);
                 break;
+            case 'wagon':
+                ctx.moveTo(halfL + 2, 0);
+                ctx.lineTo(halfL - 2, -halfW + 1);
+                ctx.lineTo(-halfL + 2, -halfW);
+                ctx.lineTo(-halfL - 2, -halfW + 3);
+                ctx.lineTo(-halfL - 2, halfW - 3);
+                ctx.lineTo(-halfL + 2, halfW);
+                ctx.lineTo(halfL - 2, halfW - 1);
+                ctx.closePath();
+                break;
+            case 'runner':
+                ctx.moveTo(halfL + 3, 0);
+                ctx.lineTo(halfL - 2, -halfW + 2);
+                ctx.lineTo(-halfL + 3, -halfW);
+                ctx.lineTo(-halfL - 2, 0);
+                ctx.lineTo(-halfL + 3, halfW);
+                ctx.lineTo(halfL - 2, halfW - 2);
+                ctx.closePath();
+                break;
             case 'cruiser':
                 ctx.roundRect(-halfL - 2, -halfW - 2, l + 4, w + 4, 3);
                 break;
@@ -425,6 +444,26 @@ export class PlayerCar {
                 ctx.lineTo(halfL - 3, halfW);
                 ctx.closePath();
                 break;
+            case 'specter':
+                ctx.moveTo(halfL + 6, 0);
+                ctx.lineTo(halfL - 3, -halfW + 1);
+                ctx.lineTo(-halfL + 5, -halfW);
+                ctx.lineTo(-halfL - 4, -halfW + 4);
+                ctx.lineTo(-halfL - 4, halfW - 4);
+                ctx.lineTo(-halfL + 5, halfW);
+                ctx.lineTo(halfL - 3, halfW - 1);
+                ctx.closePath();
+                break;
+            case 'cyclone':
+                ctx.moveTo(halfL + 7, 0);
+                ctx.lineTo(halfL - 4, -halfW - 2);
+                ctx.lineTo(-halfL + 6, -halfW - 2);
+                ctx.lineTo(-halfL - 5, -halfW + 3);
+                ctx.lineTo(-halfL - 5, halfW - 3);
+                ctx.lineTo(-halfL + 6, halfW + 2);
+                ctx.lineTo(halfL - 4, halfW + 2);
+                ctx.closePath();
+                break;
             case 'velocity':
                 ctx.moveTo(halfL + 8, 0);
                 ctx.lineTo(halfL - 4, -halfW + 3);
@@ -442,6 +481,36 @@ export class PlayerCar {
                 ctx.lineTo(-halfL - 5, halfW - 6);
                 ctx.lineTo(-halfL + 5, halfW);
                 ctx.lineTo(halfL - 2, halfW - 5);
+                ctx.closePath();
+                break;
+            case 'hyperion':
+                ctx.moveTo(halfL + 9, 0);
+                ctx.lineTo(halfL - 3, -halfW + 2);
+                ctx.lineTo(-halfL + 5, -halfW);
+                ctx.lineTo(-halfL - 6, -halfW + 5);
+                ctx.lineTo(-halfL - 6, halfW - 5);
+                ctx.lineTo(-halfL + 5, halfW);
+                ctx.lineTo(halfL - 3, halfW - 2);
+                ctx.closePath();
+                break;
+            case 'valkyrie':
+                ctx.moveTo(halfL + 11, 0);
+                ctx.lineTo(halfL - 2, -halfW + 4);
+                ctx.lineTo(-halfL + 4, -halfW + 1);
+                ctx.lineTo(-halfL - 7, -halfW + 6);
+                ctx.lineTo(-halfL - 7, halfW - 6);
+                ctx.lineTo(-halfL + 4, halfW - 1);
+                ctx.lineTo(halfL - 2, halfW - 4);
+                ctx.closePath();
+                break;
+            case 'zenith':
+                ctx.moveTo(halfL + 12, 0);
+                ctx.lineTo(halfL - 3, -halfW + 3);
+                ctx.lineTo(-halfL + 3, -halfW - 1);
+                ctx.lineTo(-halfL - 8, -halfW + 4);
+                ctx.lineTo(-halfL - 8, halfW - 4);
+                ctx.lineTo(-halfL + 3, halfW + 1);
+                ctx.lineTo(halfL - 3, halfW - 3);
                 ctx.closePath();
                 break;
             default:
@@ -489,6 +558,18 @@ export class PlayerCar {
             ctx.fillRect(halfL - 2, -halfW - 1, 4, w + 2);
             ctx.fillStyle = '#ff4757';
             ctx.fillRect(halfL * 0.2, -4, 10, 8); // Hood scoop
+        } else if (this.carId === 'wagon') {
+            // Metro Wagon Roof Rails and Rear Lip
+            ctx.fillStyle = '#2d3436';
+            ctx.fillRect(-halfL * 0.3, -halfW + 4, l * 0.5, 2);
+            ctx.fillRect(-halfL * 0.3, halfW - 6, l * 0.5, 2);
+            ctx.fillRect(-halfL - 3, -halfW + 2, 3, w - 4);
+        } else if (this.carId === 'runner') {
+            // City Runner Front Splitter & Ducktail
+            ctx.fillStyle = '#1abc9c';
+            ctx.fillRect(halfL - 2, -halfW + 2, 3, w - 4);
+            ctx.fillStyle = '#111d28';
+            ctx.fillRect(-halfL - 3, -halfW + 4, 3, w - 8);
         } else if (this.carId === 'vortex') {
             // Drift Rear Wing
             ctx.fillRect(-halfL - 5, -halfW - 2, 4, w + 4);
@@ -509,6 +590,21 @@ export class PlayerCar {
             ctx.fillRect(-halfL * 0.1, -1.5, l * 0.45, 3); // Shark Fin
             ctx.fillStyle = '#1e272e';
             ctx.fillRect(-halfL - 6, -halfW - 3, 5, w + 6);
+        } else if (this.carId === 'specter') {
+            // Specter GT Carbon Wing & Cyan Diffuser
+            ctx.fillStyle = '#2d3436';
+            ctx.fillRect(-halfL - 6, -halfW - 2, 4, w + 4);
+            ctx.fillStyle = '#00d2ff';
+            ctx.fillRect(-halfL - 7, -halfW + 6, 2, w - 12);
+        } else if (this.carId === 'cyclone') {
+            // Cyclone Turbo Extractors & Time Attack Wing
+            ctx.fillStyle = '#2d3436';
+            ctx.fillRect(halfL * 0.15, -halfW + 7, 8, 4);
+            ctx.fillRect(halfL * 0.15, halfW - 11, 8, 4);
+            ctx.fillRect(-halfL - 8, -halfW - 4, 5, w + 8);
+            ctx.fillStyle = '#fab1a0';
+            ctx.fillRect(-halfL - 8, -halfW - 4, 2, 5);
+            ctx.fillRect(-halfL - 8, halfW - 1, 2, 5);
         } else if (this.carId === 'velocity') {
             // Hypercar Active Aero
             ctx.fillStyle = '#00ffff';
@@ -522,6 +618,33 @@ export class PlayerCar {
             ctx.fillRect(halfL + 4, -halfW - 3, 4, w + 6); // Front wing
             ctx.fillStyle = '#e056fd';
             ctx.fillRect(-halfL - 8, -halfW - 4, 6, w + 8); // Rear wing
+        } else if (this.carId === 'hyperion') {
+            // Hyperion EVO Quad Diffusers & Wing
+            ctx.fillStyle = '#2d3436';
+            ctx.fillRect(-halfL - 8, -halfW - 3, 5, w + 6);
+            ctx.fillStyle = '#fdcb6e';
+            ctx.fillRect(-halfL - 4, -halfW + 4, 3, 3);
+            ctx.fillRect(-halfL - 4, halfW - 7, 3, 3);
+            ctx.fillStyle = '#e17055';
+            ctx.fillRect(-halfL - 9, -5, 3, 10);
+        } else if (this.carId === 'valkyrie') {
+            // Valkyrie Le Mans Shark Fin & Biplane Wing
+            ctx.fillStyle = '#0984e3';
+            ctx.fillRect(-halfL * 0.25, -2, l * 0.55, 4);
+            ctx.fillStyle = '#1e272e';
+            ctx.fillRect(-halfL - 9, -halfW - 5, 5, w + 10);
+            ctx.fillStyle = '#55efc4';
+            ctx.fillRect(-halfL - 9, -halfW - 5, 2, 4);
+            ctx.fillRect(-halfL - 9, halfW + 1, 2, 4);
+        } else if (this.carId === 'zenith') {
+            // Zenith Stealth Winglets & Plasma Core
+            ctx.fillStyle = '#00ffff';
+            ctx.fillRect(halfL + 2, -halfW - 2, 4, 5);
+            ctx.fillRect(halfL + 2, halfW - 3, 4, 5);
+            ctx.fillStyle = '#ff007f';
+            ctx.fillRect(-halfL - 10, -halfW - 4, 6, w + 8);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(-halfL - 11, -6, 3, 12);
         }
 
         // Headlights & Tail lights

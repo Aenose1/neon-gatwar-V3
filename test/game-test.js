@@ -20,38 +20,48 @@ assert.strictEqual(CONFIG.ABILITY_COOLDOWN, 150, 'Ability cooldown must be exact
 assert.strictEqual(CONFIG.BLACK_POLICE_UNLOCK_TIME, 600, 'Black police must unlock at 10 minutes (600s)');
 console.log('✓ Title and configuration verified.');
 
-// Test 2: Exactly 10 Unique Playable Cars Across 3 Categories
-console.log('Test 2: Verifying 10 unique car models across Normal, Sports, and Racing...');
+// Test 2: Exactly 5 Common, 5 Epic, and 5 Legendary Cars (17 Total Roster)
+console.log('Test 2: Verifying 5 Common, 5 Epic, and 5 Legendary cars...');
 const carKeys = Object.keys(CAR_MODELS);
-assert.strictEqual(carKeys.length, 10, 'Must have at least 10 playable cars');
+assert.strictEqual(carKeys.length, 17, 'Must have exactly 17 playable cars in roster');
 
 const expectedKeys = [
-    'compact', 'sedan', 'hatchback', 'cruiser',
-    'vortex', 'phantom', 'inferno',
-    'apex', 'velocity', 'thunderbolt'
+    'compact', 'sedan', 'hatchback', 'wagon', 'runner',
+    'cruiser', 'vortex',
+    'phantom', 'inferno', 'apex', 'specter', 'cyclone',
+    'velocity', 'thunderbolt', 'hyperion', 'valkyrie', 'zenith'
 ];
-assert.deepStrictEqual(carKeys, expectedKeys, 'Car keys must match the exact 10 requested models');
+assert.deepStrictEqual(carKeys, expectedKeys, 'Car keys must match the exact 17 vehicles');
 
-// Verify Categories & Rarity
-const normalCars = carKeys.filter(k => CAR_MODELS[k].category === 'normal');
-const sportsCars = carKeys.filter(k => CAR_MODELS[k].category === 'sports');
-const racingCars = carKeys.filter(k => CAR_MODELS[k].category === 'racing');
+// Verify Rarity Tiers: Exactly 5 Common, 5 Epic, and 5 Legendary
+const commonCars = carKeys.filter(k => CAR_MODELS[k].rarity === 'common');
+const rareCars = carKeys.filter(k => CAR_MODELS[k].rarity === 'rare');
+const epicCars = carKeys.filter(k => CAR_MODELS[k].rarity === 'epic');
+const legendaryCars = carKeys.filter(k => CAR_MODELS[k].rarity === 'legendary');
 
-assert.strictEqual(normalCars.length, 4, 'Must have exactly 4 Normal cars');
-assert.strictEqual(sportsCars.length, 3, 'Must have exactly 3 Sports cars');
-assert.strictEqual(racingCars.length, 3, 'Must have exactly 3 Racing cars');
+assert.strictEqual(commonCars.length, 5, 'Must have exactly 5 Common cars');
+assert.strictEqual(rareCars.length, 2, 'Must have exactly 2 Rare cars');
+assert.strictEqual(epicCars.length, 5, 'Must have exactly 5 Epic cars');
+assert.strictEqual(legendaryCars.length, 5, 'Must have exactly 5 Legendary cars');
 
 assert.strictEqual(CAR_MODELS.compact.price, 0, 'Starter Neon Compact must be free ($0)');
 assert.strictEqual(CAR_MODELS.compact.rarity, 'common');
-assert.strictEqual(CAR_MODELS.sedan.name, 'Street Sedan');
-assert.strictEqual(CAR_MODELS.hatchback.name, 'Urban Hatchback');
-assert.strictEqual(CAR_MODELS.cruiser.name, 'Heavy Cruiser');
-assert.strictEqual(CAR_MODELS.vortex.name, 'Vortex GT');
-assert.strictEqual(CAR_MODELS.phantom.name, 'Phantom Coupe');
-assert.strictEqual(CAR_MODELS.inferno.name, 'Inferno RS');
-assert.strictEqual(CAR_MODELS.apex.name, 'Apex Racer');
-assert.strictEqual(CAR_MODELS.velocity.name, 'Velocity X');
-assert.strictEqual(CAR_MODELS.thunderbolt.name, 'Thunderbolt Pro');
+assert.strictEqual(CAR_MODELS.sedan.rarity, 'common');
+assert.strictEqual(CAR_MODELS.hatchback.rarity, 'common');
+assert.strictEqual(CAR_MODELS.wagon.rarity, 'common');
+assert.strictEqual(CAR_MODELS.runner.rarity, 'common');
+
+assert.strictEqual(CAR_MODELS.phantom.rarity, 'epic');
+assert.strictEqual(CAR_MODELS.inferno.rarity, 'epic');
+assert.strictEqual(CAR_MODELS.apex.rarity, 'epic');
+assert.strictEqual(CAR_MODELS.specter.rarity, 'epic');
+assert.strictEqual(CAR_MODELS.cyclone.rarity, 'epic');
+
+assert.strictEqual(CAR_MODELS.velocity.rarity, 'legendary');
+assert.strictEqual(CAR_MODELS.thunderbolt.rarity, 'legendary');
+assert.strictEqual(CAR_MODELS.hyperion.rarity, 'legendary');
+assert.strictEqual(CAR_MODELS.valkyrie.rarity, 'legendary');
+assert.strictEqual(CAR_MODELS.zenith.rarity, 'legendary');
 
 for (const key of carKeys) {
     const c = CAR_MODELS[key];
@@ -60,7 +70,7 @@ for (const key of carKeys) {
     assert(c.driftMultiplier > 0, `${key} must have a positive drift multiplier`);
     assert(['common', 'rare', 'epic', 'legendary'].includes(c.rarity));
 }
-console.log('✓ 10 playable cars verified with unique stats, categories, rarities, and visuals.');
+console.log('✓ 5 Common, 5 Epic, and 5 Legendary cars verified with unique stats, rarities, and visuals.');
 
 // Test 3: Exactly 3 Improved Maps & Bug Fixes (Zero Houses in Roads, Water/Bridges, Destructibility >= 57%)
 console.log('Test 3: Verifying three improved maps, road clearances, water collision, and >= 57% destructibles...');
@@ -250,7 +260,14 @@ assert.strictEqual(testCar.damage.health, hpAfterCopHit, 'Damage must NOT be rep
 
 // F. Unwanted Circle Object Removed:
 assert(!mockMap.drawGroundDetails.toString().includes('arc'), 'drawGroundDetails must NOT draw circular artifacts on the ground');
-console.log('✓ Zero environmental damage, police damage once-per-event, and circle removal verified.');
+assert(!mockMap.drawSolidProps.toString().includes('arc'), 'drawSolidProps must NOT draw circular artifacts on the ground');
+
+for (let mapIdx = 0; mapIdx < 3; mapIdx++) {
+    const testMap = new GameMap(mapIdx);
+    const circularProps = testMap.solidProps.filter(p => p.type === 'bollard' || p.type === 'pylon');
+    assert.strictEqual(circularProps.length, 0, `Map ${testMap.name} must contain zero bollard or pylon circular objects (found ${circularProps.length})`);
+}
+console.log('✓ Zero environmental damage, police damage once-per-event, and circular object removal verified.');
 
 // Test 6: Fast Automatic Reverse Recovery & Responsive Manual Reverse
 console.log('Test 6: Verifying fast automatic reverse recovery and responsive manual reverse speed...');

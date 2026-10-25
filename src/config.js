@@ -22,7 +22,7 @@ export const CONFIG = {
 };
 
 export const CAR_MODELS = {
-    // === NORMAL CARS (4) ===
+    // === COMMON CARS (5) ===
     compact: {
         id: 'compact',
         name: 'Neon Compact',
@@ -92,6 +92,54 @@ export const CAR_MODELS = {
         length: 52,
         stats: { speed: 73, accel: 78, handling: 84, armor: 58, drift: 75 }
     },
+    wagon: {
+        id: 'wagon',
+        name: 'Metro Wagon',
+        category: 'normal',
+        rarity: 'common',
+        type: 'Sport Tourer',
+        price: 2400,
+        unlocked: false,
+        description: 'Tuned long-roof estate wagon featuring reinforced chassis, heavy utility bumpers, and stable high-speed tracking.',
+        topSpeed: 410,
+        boostSpeed: 510,
+        accel: 460,
+        turnRate: 3.5,
+        durability: 140,
+        armor: 1.3,
+        driftMultiplier: 1.05,
+        color: '#e67e22',
+        stripeColor: '#2d3436',
+        accentColor: '#f39c12',
+        width: 35,
+        length: 62,
+        stats: { speed: 71, accel: 74, handling: 70, armor: 74, drift: 62 }
+    },
+    runner: {
+        id: 'runner',
+        name: 'City Runner',
+        category: 'normal',
+        rarity: 'common',
+        type: 'Street Runner',
+        price: 2900,
+        unlocked: false,
+        description: 'Quick-stepping street runner built for swift getaways, quick 180 handbrake turns, and aggressive lane splitting.',
+        topSpeed: 425,
+        boostSpeed: 525,
+        accel: 490,
+        turnRate: 4.0,
+        durability: 115,
+        armor: 1.1,
+        driftMultiplier: 1.18,
+        color: '#16a085',
+        stripeColor: '#ffffff',
+        accentColor: '#1abc9c',
+        width: 33,
+        length: 55,
+        stats: { speed: 75, accel: 80, handling: 82, armor: 60, drift: 76 }
+    },
+
+    // === RARE CARS (2) ===
     cruiser: {
         id: 'cruiser',
         name: 'Heavy Cruiser',
@@ -115,8 +163,6 @@ export const CAR_MODELS = {
         length: 66,
         stats: { speed: 75, accel: 74, handling: 60, armor: 96, drift: 50 }
     },
-
-    // === SPORTS CARS (3) ===
     vortex: {
         id: 'vortex',
         name: 'Vortex GT',
@@ -140,6 +186,8 @@ export const CAR_MODELS = {
         length: 58,
         stats: { speed: 82, accel: 84, handling: 86, armor: 62, drift: 85 }
     },
+
+    // === EPIC CARS (5) ===
     phantom: {
         id: 'phantom',
         name: 'Phantom Coupe',
@@ -186,8 +234,6 @@ export const CAR_MODELS = {
         length: 64,
         stats: { speed: 90, accel: 91, handling: 85, armor: 70, drift: 88 }
     },
-
-    // === RACING CARS (3) ===
     apex: {
         id: 'apex',
         name: 'Apex Racer',
@@ -211,6 +257,54 @@ export const CAR_MODELS = {
         length: 66,
         stats: { speed: 94, accel: 93, handling: 92, armor: 68, drift: 82 }
     },
+    specter: {
+        id: 'specter',
+        name: 'Specter GT',
+        category: 'sports',
+        rarity: 'epic',
+        type: 'Midnight Aero',
+        price: 15500,
+        unlocked: false,
+        description: 'Midnight twin-turbo GT equipped with carbon aerodynamic skirts, high-angle drift steering, and instant nitro response.',
+        topSpeed: 505,
+        boostSpeed: 630,
+        accel: 645,
+        turnRate: 4.6,
+        durability: 135,
+        armor: 1.25,
+        driftMultiplier: 1.42,
+        color: '#6c5ce7',
+        stripeColor: '#00d2ff',
+        accentColor: '#a29bfe',
+        width: 35,
+        length: 63,
+        stats: { speed: 92, accel: 92, handling: 90, armor: 67, drift: 93 }
+    },
+    cyclone: {
+        id: 'cyclone',
+        name: 'Cyclone Turbo',
+        category: 'racing',
+        rarity: 'epic',
+        type: 'Time Attack',
+        price: 17000,
+        unlocked: false,
+        description: 'High-downforce time attack weapon featuring twin hood extractors, low-slung front splitter, and razor-sharp apex carving.',
+        topSpeed: 530,
+        boostSpeed: 655,
+        accel: 675,
+        turnRate: 4.75,
+        durability: 140,
+        armor: 1.3,
+        driftMultiplier: 1.35,
+        color: '#e17055',
+        stripeColor: '#2d3436',
+        accentColor: '#fab1a0',
+        width: 36,
+        length: 66,
+        stats: { speed: 95, accel: 94, handling: 93, armor: 70, drift: 86 }
+    },
+
+    // === LEGENDARY CARS (5) ===
     velocity: {
         id: 'velocity',
         name: 'Velocity X',
@@ -256,6 +350,75 @@ export const CAR_MODELS = {
         width: 37,
         length: 70,
         stats: { speed: 100, accel: 100, handling: 98, armor: 75, drift: 94 }
+    },
+    hyperion: {
+        id: 'hyperion',
+        name: 'Hyperion EVO',
+        category: 'racing',
+        rarity: 'legendary',
+        type: 'Aero Hypercar',
+        price: 32000,
+        unlocked: false,
+        description: 'Masterpiece hypercar engineered with quad-exhaust downforce vents, active aero wings, and monstrous top speed velocity.',
+        topSpeed: 600,
+        boostSpeed: 740,
+        accel: 800,
+        turnRate: 5.1,
+        durability: 160,
+        armor: 1.45,
+        driftMultiplier: 1.48,
+        color: '#fdcb6e',
+        stripeColor: '#2d3436',
+        accentColor: '#ffeaa7',
+        width: 37,
+        length: 70,
+        stats: { speed: 100, accel: 100, handling: 99, armor: 78, drift: 95 }
+    },
+    valkyrie: {
+        id: 'valkyrie',
+        name: 'Valkyrie Proto',
+        category: 'racing',
+        rarity: 'legendary',
+        type: 'Le Mans Proto',
+        price: 40000,
+        unlocked: false,
+        description: 'Prototype Le Mans endurance hyper-racer with center shark fin, ultra-light carbon chassis, and phenomenal cornering grip.',
+        topSpeed: 615,
+        boostSpeed: 760,
+        accel: 825,
+        turnRate: 5.2,
+        durability: 165,
+        armor: 1.5,
+        driftMultiplier: 1.52,
+        color: '#00b894',
+        stripeColor: '#0984e3',
+        accentColor: '#55efc4',
+        width: 37,
+        length: 72,
+        stats: { speed: 100, accel: 100, handling: 100, armor: 80, drift: 96 }
+    },
+    zenith: {
+        id: 'zenith',
+        name: 'Zenith Hypercar',
+        category: 'racing',
+        rarity: 'legendary',
+        type: 'Ultimate Outlaw',
+        price: 50000,
+        unlocked: false,
+        description: 'The ultimate underground getaway legend. Experimental plasma nitro propulsion, active rear airbrakes, and unmatched pursuit evasion.',
+        topSpeed: 635,
+        boostSpeed: 790,
+        accel: 860,
+        turnRate: 5.3,
+        durability: 175,
+        armor: 1.6,
+        driftMultiplier: 1.55,
+        color: '#ff007f',
+        stripeColor: '#00ffff',
+        accentColor: '#ffffff',
+        width: 38,
+        length: 74,
+        stats: { speed: 100, accel: 100, handling: 100, armor: 85, drift: 98 }
     }
 };
 

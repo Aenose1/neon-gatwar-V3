@@ -6,11 +6,7 @@ import { audio } from './audio.js';
 export class GarageManager {
     constructor(game) {
         this.game = game;
-        this.carKeys = [
-            'compact', 'sedan', 'hatchback', 'cruiser',
-            'vortex', 'phantom', 'inferno',
-            'apex', 'velocity', 'thunderbolt'
-        ];
+        this.carKeys = Object.keys(CAR_MODELS);
         this.currentIndex = 0;
         this.turntableAngle = 0;
 
