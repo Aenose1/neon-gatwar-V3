@@ -381,6 +381,88 @@ class AudioManager {
         } catch (e) {}
     }
 
+    // Water Splash sound when driving into water hazard
+    playSplash() {
+        if (!this.ctx || !this.enabled) return;
+        try {
+            const now = this.ctx.currentTime;
+            const bufferSize = this.ctx.sampleRate * 0.35;
+            const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.1));
+            }
+
+            const noise = this.ctx.createBufferSource();
+            noise.buffer = buffer;
+
+            const filter = this.ctx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(450, now);
+            filter.frequency.linearRampToValueAtTime(120, now + 0.35);
+
+            const gain = this.ctx.createGain();
+            gain.gain.setValueAtTime(0.5, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+
+            noise.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.masterGain);
+            noise.start(now);
+        } catch (e) {}
+    }
+
+    // Gacha rolling tension sound
+    playGachaRoll() {
+        if (!this.ctx || !this.enabled) return;
+        try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(220, now);
+            osc.frequency.exponentialRampToValueAtTime(880, now + 0.6);
+
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+            osc.start(now);
+            osc.stop(now + 0.62);
+        } catch (e) {}
+    }
+
+    // Gacha card reveal fanfare based on rarity
+    playGachaReveal(rarity = 'common') {
+        if (!this.ctx || !this.enabled) return;
+        try {
+            const now = this.ctx.currentTime;
+            const pitches = {
+                common: [440, 554],
+                rare: [523, 659, 784],
+                epic: [587, 740, 880, 1174],
+                legendary: [659, 830, 987, 1318, 1661]
+            }[rarity] || [440, 554];
+
+            pitches.forEach((freq, idx) => {
+                const noteTime = now + idx * 0.12;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, noteTime);
+
+                gain.gain.setValueAtTime(0.25, noteTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.4);
+
+                osc.connect(gain);
+                gain.connect(this.masterGain);
+                osc.start(noteTime);
+                osc.stop(noteTime + 0.42);
+            });
+        } catch (e) {}
+    }
+
     // Game Over
     playGameOver() {
         if (!this.ctx || !this.enabled) return;

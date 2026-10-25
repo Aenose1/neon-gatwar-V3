@@ -1,4 +1,4 @@
-// src/player.js - Player vehicle physics, 2.5D rendering, drifting, and Tank mode
+// src/player.js - Player vehicle physics, 2.5D rendering for 10 unique cars, drifting, water collision, and Tank mode
 import { CAR_MODELS } from './config.js';
 import { DamageManager } from './damage.js';
 import { audio } from './audio.js';
@@ -22,6 +22,9 @@ export class PlayerCar {
         this.isTank = false;
         this.tankTimer = 0;
         this.smokeTimer = 0;
+        this.waterTimer = 0;
+        this.waterSplashTimer = 0;
+        this.waterHazardMessage = '';
     }
 
     setCarModel(carId) {
@@ -34,6 +37,7 @@ export class PlayerCar {
         this.turnRate = model.turnRate;
         this.width = model.width;
         this.length = model.length;
+        this.driftMultiplier = model.driftMultiplier || 1.0;
         this.radius = Math.hypot(this.width, this.length) / 2.3;
 
         this.damage.reset(model.durability, model.armor);
@@ -63,6 +67,9 @@ export class PlayerCar {
         this.tankTimer = 0;
         this.lateralSlip = 0;
         this.isDrifting = false;
+        this.waterTimer = 0;
+        this.waterSplashTimer = 0;
+        this.waterHazardMessage = '';
         this.damage.reset(this.model.durability, this.model.armor);
     }
 
@@ -92,6 +99,47 @@ export class PlayerCar {
             if (this.tankTimer <= 0) {
                 this.isTank = false;
             }
+        }
+
+        // ==========================================
+        // WATER HAZARD DETECTION & SINKING PREVENTION
+        // ==========================================
+        const inWater = map ? map.isInWater(this.x, this.y) : false;
+        if (inWater && !this.isTank) {
+            // Rapidly decelerate vehicle when touching water
+            this.speed *= Math.max(0, 1 - 7.0 * dt);
+            this.waterTimer += dt;
+            this.waterSplashTimer += dt;
+
+            if (this.waterSplashTimer > 0.08) {
+                this.waterSplashTimer = 0;
+                if (particleManager) {
+                    particleManager.spawnWaterSplash(this.x, this.y, 8);
+                }
+                audio.playSplash();
+            }
+
+            // If submerged or stalled in water, sink and reset to nearest road bank
+            if (this.waterTimer > 0.35 || Math.abs(this.speed) < 35) {
+                const safePoint = map.getNearestRoadPoint(this.x, this.y);
+                this.x = safePoint.x;
+                this.y = safePoint.y;
+                this.speed = 110;
+                this.waterTimer = 0;
+
+                // Take water hazard damage
+                const dmg = this.takeCollisionDamage('water_hazard', 140);
+                if (particleManager) {
+                    particleManager.spawnWaterSplash(safePoint.x, safePoint.y, 18);
+                    particleManager.addFloatingText('WATER HAZARD! RESET TO ROAD', safePoint.x, safePoint.y - 35, '#00d2ff', 18, true);
+                    if (dmg > 0) {
+                        particleManager.addFloatingText(`-${dmg} HP`, safePoint.x, safePoint.y - 15, '#e74c3c', 16);
+                    }
+                }
+                this.waterHazardMessage = 'WATER HAZARD! VEHICLE RECOVERED';
+            }
+        } else {
+            this.waterTimer = 0;
         }
 
         // Off-road terrain check
@@ -145,13 +193,13 @@ export class PlayerCar {
         const turnDelta = steerInput * currentTurnRate * speedTurnScale * dt;
         this.angle += turnDelta;
 
-        // Drifting calculation
+        // Drifting calculation with vehicle driftMultiplier
         const turnIntensity = Math.abs(steerInput);
-        const isHighSpeed = Math.abs(this.speed) > 220;
-        this.isDrifting = (turnIntensity > 0.45 && isHighSpeed) || input.isHandbrake;
+        const isHighSpeed = Math.abs(this.speed) > 200;
+        this.isDrifting = (turnIntensity > 0.42 && isHighSpeed) || input.isHandbrake;
 
         if (this.isDrifting && !this.isTank) {
-            this.lateralSlip = Math.min(1.0, this.lateralSlip + 3.0 * dt);
+            this.lateralSlip = Math.min(1.0, this.lateralSlip + (3.0 * this.driftMultiplier) * dt);
             audio.playDrift(0.12 * this.lateralSlip);
         } else {
             this.lateralSlip = Math.max(0, this.lateralSlip - 4.0 * dt);
@@ -163,7 +211,7 @@ export class PlayerCar {
         const normalX = -Math.sin(this.angle);
         const normalY = Math.cos(this.angle);
 
-        const slipAmount = this.lateralSlip * 0.35 * -Math.sign(steerInput || 1);
+        const slipAmount = this.lateralSlip * 0.38 * -Math.sign(steerInput || 1);
         this.vx = (forwardX * this.speed) + (normalX * this.speed * slipAmount);
         this.vy = (forwardY * this.speed) + (normalY * this.speed * slipAmount);
 
@@ -219,7 +267,7 @@ export class PlayerCar {
 
         if (this.isDrifting || this.lateralSlip > 0.3) {
             if (this.prevRlX !== undefined) {
-                const skidColor = map && map.theme === 'winter' ? 'rgba(180, 200, 220, 0.45)' : 'rgba(20, 20, 20, 0.4)';
+                const skidColor = 'rgba(20, 20, 20, 0.45)';
                 particleManager.addSkidSegment(this.prevRlX, this.prevRlY, rlX, rlY, 0.4, skidColor, 4);
                 particleManager.addSkidSegment(this.prevRrX, this.prevRrY, rrX, rrY, 0.4, skidColor, 4);
             }
@@ -231,7 +279,7 @@ export class PlayerCar {
 
         if (isOffroad && Math.abs(this.speed) > 100) {
             if (Math.random() < 0.5) {
-                const puffType = map && map.theme === 'winter' ? 'snow' : (map && map.theme === 'spring' ? 'grass' : 'dust');
+                const puffType = map && map.theme === 'suburbs' ? 'grass' : (map && map.theme === 'industrial' ? 'smoke' : 'dust');
                 particleManager.spawnTirePuff(rlX, rlY, this.angle, puffType);
                 particleManager.spawnTirePuff(rrX, rrY, this.angle, puffType);
             }
@@ -264,7 +312,7 @@ export class PlayerCar {
         const halfL = l / 2;
 
         // 1. Drop shadow with 2.5D offset
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.32)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
         ctx.beginPath();
         ctx.roundRect(-halfL + 5, -halfW + 6, l, w, 8);
         ctx.fill();
@@ -312,39 +360,97 @@ export class PlayerCar {
         ctx.lineWidth = 1.5;
 
         ctx.beginPath();
-        if (this.carId === 'compact') {
-            ctx.roundRect(-halfL, -halfW, l, w, 6);
-        } else if (this.carId === 'street') {
-            ctx.moveTo(halfL + 4, 0);
-            ctx.lineTo(halfL, -halfW);
-            ctx.lineTo(-halfL + 2, -halfW);
-            ctx.lineTo(-halfL - 2, 0);
-            ctx.lineTo(-halfL + 2, halfW);
-            ctx.lineTo(halfL, halfW);
-            ctx.closePath();
-        } else if (this.carId === 'muscle') {
-            ctx.roundRect(-halfL, -halfW, l, w, 4);
-        } else {
-            ctx.moveTo(halfL + 6, 0);
-            ctx.lineTo(halfL - 2, -halfW);
-            ctx.lineTo(-halfL + 6, -halfW);
-            ctx.lineTo(-halfL - 2, -halfW + 6);
-            ctx.lineTo(-halfL - 2, halfW - 6);
-            ctx.lineTo(-halfL + 6, halfW);
-            ctx.lineTo(halfL - 2, halfW);
-            ctx.closePath();
+        switch (this.carId) {
+            case 'compact':
+                ctx.roundRect(-halfL, -halfW, l, w, 6);
+                break;
+            case 'sedan':
+                ctx.moveTo(halfL + 2, 0);
+                ctx.lineTo(halfL - 2, -halfW);
+                ctx.lineTo(-halfL + 4, -halfW);
+                ctx.lineTo(-halfL - 2, 0);
+                ctx.lineTo(-halfL + 4, halfW);
+                ctx.lineTo(halfL - 2, halfW);
+                ctx.closePath();
+                break;
+            case 'hatchback':
+                ctx.roundRect(-halfL, -halfW, l, w, 4);
+                break;
+            case 'cruiser':
+                ctx.roundRect(-halfL - 2, -halfW - 2, l + 4, w + 4, 3);
+                break;
+            case 'vortex':
+                ctx.moveTo(halfL + 4, 0);
+                ctx.lineTo(halfL - 2, -halfW);
+                ctx.lineTo(-halfL + 2, -halfW);
+                ctx.lineTo(-halfL - 3, -halfW + 4);
+                ctx.lineTo(-halfL - 3, halfW - 4);
+                ctx.lineTo(-halfL + 2, halfW);
+                ctx.lineTo(halfL - 2, halfW);
+                ctx.closePath();
+                break;
+            case 'phantom':
+                ctx.moveTo(halfL + 5, 0);
+                ctx.lineTo(halfL - 4, -halfW + 2);
+                ctx.lineTo(-halfL + 6, -halfW);
+                ctx.lineTo(-halfL - 2, 0);
+                ctx.lineTo(-halfL + 6, halfW);
+                ctx.lineTo(halfL - 4, halfW - 2);
+                ctx.closePath();
+                break;
+            case 'inferno':
+                ctx.moveTo(halfL + 6, 0);
+                ctx.lineTo(halfL - 3, -halfW - 1);
+                ctx.lineTo(-halfL + 4, -halfW - 1);
+                ctx.lineTo(-halfL - 4, -halfW + 3);
+                ctx.lineTo(-halfL - 4, halfW - 3);
+                ctx.lineTo(-halfL + 4, halfW + 1);
+                ctx.lineTo(halfL - 3, halfW + 1);
+                ctx.closePath();
+                break;
+            case 'apex':
+                ctx.moveTo(halfL + 7, 0);
+                ctx.lineTo(halfL - 3, -halfW);
+                ctx.lineTo(-halfL + 8, -halfW);
+                ctx.lineTo(-halfL - 3, -halfW + 5);
+                ctx.lineTo(-halfL - 3, halfW - 5);
+                ctx.lineTo(-halfL + 8, halfW);
+                ctx.lineTo(halfL - 3, halfW);
+                ctx.closePath();
+                break;
+            case 'velocity':
+                ctx.moveTo(halfL + 8, 0);
+                ctx.lineTo(halfL - 4, -halfW + 3);
+                ctx.lineTo(-halfL + 4, -halfW);
+                ctx.lineTo(-halfL - 4, 0);
+                ctx.lineTo(-halfL + 4, halfW);
+                ctx.lineTo(halfL - 4, halfW - 3);
+                ctx.closePath();
+                break;
+            case 'thunderbolt':
+                ctx.moveTo(halfL + 10, 0);
+                ctx.lineTo(halfL - 2, -halfW + 5);
+                ctx.lineTo(-halfL + 5, -halfW);
+                ctx.lineTo(-halfL - 5, -halfW + 6);
+                ctx.lineTo(-halfL - 5, halfW - 6);
+                ctx.lineTo(-halfL + 5, halfW);
+                ctx.lineTo(halfL - 2, halfW - 5);
+                ctx.closePath();
+                break;
+            default:
+                ctx.roundRect(-halfL, -halfW, l, w, 6);
         }
         ctx.fill();
         ctx.stroke();
 
-        // 4. Racing stripes
+        // 4. Racing stripes / Livery
         ctx.fillStyle = this.model.stripeColor;
         ctx.fillRect(-halfL + 4, -3, l - 8, 6);
 
-        // 5. Cabin & Windshield
-        const cabinX = -halfL * 0.25;
-        const cabinW = l * 0.48;
-        const cabinH = w * 0.68;
+        // 5. Cabin & Glass Canopy
+        const cabinX = -halfL * 0.22;
+        const cabinW = l * 0.46;
+        const cabinH = w * 0.66;
 
         ctx.fillStyle = '#111d28';
         ctx.beginPath();
@@ -368,19 +474,47 @@ export class PlayerCar {
         ctx.fillStyle = this.darkenColor(this.model.color, 15);
         ctx.fillRect(cabinX + 4, -cabinH / 2 + 4, cabinW - 14, cabinH - 8);
 
-        // Car model specific accents
-        if (this.carId === 'street') {
+        // 6. Distinct Custom Spoilers & Model Details
+        ctx.fillStyle = '#1e272e';
+        if (this.carId === 'cruiser') {
+            // Heavy Bullbar
+            ctx.fillStyle = '#747d8c';
+            ctx.fillRect(halfL - 2, -halfW - 1, 4, w + 2);
+            ctx.fillStyle = '#ff4757';
+            ctx.fillRect(halfL * 0.2, -4, 10, 8); // Hood scoop
+        } else if (this.carId === 'vortex') {
+            // Drift Rear Wing
+            ctx.fillRect(-halfL - 5, -halfW - 2, 4, w + 4);
+        } else if (this.carId === 'phantom') {
+            // Dual aero fins
+            ctx.fillRect(-halfL - 4, -halfW + 3, 4, 5);
+            ctx.fillRect(-halfL - 4, halfW - 8, 4, 5);
+        } else if (this.carId === 'inferno') {
+            // Huge GT track wing
+            ctx.fillStyle = '#2f3542';
+            ctx.fillRect(-halfL - 7, -halfW - 4, 5, w + 8);
+            ctx.fillStyle = '#ff4757';
+            ctx.fillRect(-halfL - 7, -halfW - 4, 2, 4);
+            ctx.fillRect(-halfL - 7, halfW, 2, 4);
+        } else if (this.carId === 'apex') {
+            // Championship Shark Fin & Wing
+            ctx.fillStyle = '#e74c3c';
+            ctx.fillRect(-halfL * 0.1, -1.5, l * 0.45, 3); // Shark Fin
             ctx.fillStyle = '#1e272e';
-            ctx.fillRect(-halfL - 4, -halfW - 2, 4, w + 4);
-        } else if (this.carId === 'muscle') {
-            ctx.fillStyle = '#dcdde1';
-            ctx.fillRect(halfL * 0.2, -5, 10, 10);
-            ctx.fillStyle = '#718093';
-            ctx.fillRect(halfL * 0.2 + 2, -3, 6, 6);
-        } else if (this.carId === 'super') {
-            ctx.fillStyle = '#130f40';
-            ctx.fillRect(-halfL - 3, -halfW + 2, 5, 4);
-            ctx.fillRect(-halfL - 3, halfW - 6, 5, 4);
+            ctx.fillRect(-halfL - 6, -halfW - 3, 5, w + 6);
+        } else if (this.carId === 'velocity') {
+            // Hypercar Active Aero
+            ctx.fillStyle = '#00ffff';
+            ctx.fillRect(-halfL - 6, -halfW - 1, 4, 6);
+            ctx.fillRect(-halfL - 6, halfW - 5, 4, 6);
+            ctx.fillStyle = '#ff007f';
+            ctx.fillRect(-halfL - 8, -4, 4, 8);
+        } else if (this.carId === 'thunderbolt') {
+            // Prototype Formula Nose Wings & Giant Rear Wing
+            ctx.fillStyle = '#f1c40f';
+            ctx.fillRect(halfL + 4, -halfW - 3, 4, w + 6); // Front wing
+            ctx.fillStyle = '#e056fd';
+            ctx.fillRect(-halfL - 8, -halfW - 4, 6, w + 8); // Rear wing
         }
 
         // Headlights & Tail lights

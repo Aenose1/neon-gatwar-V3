@@ -1,4 +1,4 @@
-// src/collisions.js - Collision detection and response engine
+// src/collisions.js - Collision detection and response engine with tiered destruction forces and solid props
 import { audio } from './audio.js';
 
 export class CollisionEngine {
@@ -14,48 +14,110 @@ export class CollisionEngine {
 
         this.isCollidingWithSolid = false;
 
-        // 1. Player vs Destructibles
+        // 1. Player vs Destructibles (Tiered speed requirement)
         this.handlePlayerDestructibles(player, map, policeManager, particleManager, scoringManager, camera);
 
-        // 2. Player vs Unbreakable Buildings
+        // 2. Player vs Indestructible Solid Props (Bollards, Transformers, Pylons)
+        this.handlePlayerSolidProps(player, map, particleManager, camera);
+
+        // 3. Player vs Unbreakable Buildings
         this.handlePlayerBuildings(player, map, particleManager, camera);
 
-        // 3. Player vs Police
+        // 4. Player vs Police
         this.handlePlayerPolice(player, policeManager, particleManager, scoringManager, camera);
 
-        // 4. Police vs Buildings
+        // 5. Police vs Buildings & Solid Props
         this.handlePoliceBuildings(policeManager, map);
     }
 
     handlePlayerDestructibles(player, map, policeManager, particleManager, scoringManager, camera) {
-        const nearby = map.getNearbyDestructibles(player.x, player.y, 130);
+        const nearby = map.getNearbyDestructibles(player.x, player.y, 140);
+        const currentSpeed = Math.abs(player.speed);
 
         for (let i = 0; i < nearby.length; i++) {
             const d = nearby[i];
             if (d.destroyed) continue;
 
             const dist = Math.hypot(player.x - d.x, player.y - d.y);
-            if (dist < player.radius + d.radius) {
-                d.destroyed = true;
+            const minDist = player.radius + d.radius;
 
-                // Award score, cash, and combo via scoringManager
-                const rewards = scoringManager.recordDestruction(d.cashReward, d.scoreReward);
+            if (dist < minDist) {
+                // Tiered breaking threshold:
+                // Heavy cars (cruiser) or tank mode or boosting lower the required speed threshold
+                let threshold = d.reqSpeed || 100;
+                if (player.isTank) threshold = 0;
+                else if (player.carId === 'cruiser') threshold *= 0.55;
 
-                audio.playSmash(d.type);
-                audio.playCashChime();
-                camera.shake(player.isTank ? 9 : 5);
+                const hasSufficientForce = currentSpeed >= threshold || player.isTank;
 
-                particleManager.spawnDebris(d.x, d.y, d.type, player.isTank ? 18 : 12);
-                particleManager.addFloatingText(`+$${rewards.cashGain}`, d.x, d.y, '#f1c40f', 18 + Math.min(10, rewards.combo * 2));
+                if (hasSufficientForce) {
+                    // Destroy object
+                    d.destroyed = true;
 
-                if (rewards.combo >= 3) {
-                    particleManager.addFloatingText(`x${rewards.combo} COMBO!`, player.x, player.y - 28, '#ff4757', 20, true);
+                    // Award score, tiered cash, and combo via scoringManager
+                    const rewards = scoringManager.recordDestruction(d.cashReward, d.scoreReward);
+
+                    audio.playSmash(d.type);
+                    audio.playCashChime();
+                    camera.shake(player.isTank ? 9 : (d.tier === 'heavy' ? 8 : 4));
+
+                    particleManager.spawnDebris(d.x, d.y, d.type, player.isTank ? 18 : 12);
+                    particleManager.addFloatingText(`+$${rewards.cashGain}`, d.x, d.y, '#f1c40f', 18 + Math.min(10, rewards.combo * 2));
+
+                    if (rewards.combo >= 3) {
+                        particleManager.addFloatingText(`x${rewards.combo} COMBO!`, player.x, player.y - 28, '#ff4757', 20, true);
+                    }
+
+                    policeManager.addHeat(d.tier === 'heavy' ? 4 : 2);
+
+                    // Speed penalty upon breaking (except tank or heavy cruiser)
+                    if (!player.isTank && player.carId !== 'cruiser') {
+                        const slowFactor = d.tier === 'heavy' ? 0.88 : (d.tier === 'medium' ? 0.94 : 0.98);
+                        player.speed *= slowFactor;
+                    }
+                } else {
+                    // Insufficient speed to break obstacle -> bounce off
+                    this.isCollidingWithSolid = true;
+                    const angle = Math.atan2(player.y - d.y, player.x - d.x);
+                    player.x = d.x + Math.cos(angle) * minDist;
+                    player.y = d.y + Math.sin(angle) * minDist;
+                    player.speed *= -0.3;
+
+                    audio.playHit();
+                    camera.shake(4);
+                    particleManager.spawnSparks(player.x, player.y, 8);
+                    particleManager.addFloatingText('NEED MORE SPEED!', player.x, player.y - 22, '#f39c12', 14);
                 }
+            }
+        }
+    }
 
-                policeManager.addHeat(2.5);
+    handlePlayerSolidProps(player, map, particleManager, camera) {
+        if (!map.solidProps) return;
 
-                if (!player.isTank && player.carId !== 'muscle') {
-                    player.speed *= 0.94;
+        for (let i = 0; i < map.solidProps.length; i++) {
+            const p = map.solidProps[i];
+            const dist = Math.hypot(player.x - p.x, player.y - p.y);
+            const minDist = player.radius + p.radius;
+
+            if (dist < minDist && dist > 0) {
+                this.isCollidingWithSolid = true;
+
+                const normX = (player.x - p.x) / dist;
+                const normY = (player.y - p.y) / dist;
+                player.x = p.x + normX * minDist;
+                player.y = p.y + normY * minDist;
+
+                const preImpactSpeed = player.speed;
+                const damageDealt = player.takeCollisionDamage(p.id, Math.abs(preImpactSpeed));
+
+                player.speed *= -0.35;
+                audio.playHit();
+                camera.shake(Math.min(12, 4 + Math.abs(preImpactSpeed) * 0.02));
+                particleManager.spawnSparks(player.x, player.y, 10);
+
+                if (damageDealt > 0) {
+                    particleManager.addFloatingText(`-${damageDealt} HP`, player.x, player.y - 20, '#e74c3c', 16);
                 }
             }
         }
@@ -133,7 +195,7 @@ export class CollisionEngine {
                     cop.x += normX * pushDist;
                     cop.y += normY * pushDist;
 
-                    const ramMultiplier = player.carId === 'muscle' ? 2.2 : 1.0;
+                    const ramMultiplier = player.carId === 'cruiser' ? 2.5 : 1.0;
                     const damageToCop = Math.max(15, (relSpeed * 0.12) * ramMultiplier);
                     const damageToPlayer = player.takeCollisionDamage(`cop_${i}`, relSpeed * 0.6);
 

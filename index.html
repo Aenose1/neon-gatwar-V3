@@ -34,6 +34,9 @@
                 <button id="btn-play" class="btn-arcade">
                     <span>⚡</span> PLAY GETAWAY
                 </button>
+                <button id="btn-gacha" class="btn-arcade btn-secondary">
+                    <span>🎰</span> CAR GACHA
+                </button>
                 <button id="btn-garage" class="btn-arcade btn-secondary">
                     <span>🚗</span> GARAGE SHOWROOM
                 </button>
@@ -55,41 +58,41 @@
             </div>
 
             <div class="map-selection-grid">
-                <!-- Map 1: Winter Wonderland -->
-                <div class="map-card map-winter" data-map-index="0">
-                    <div class="map-preview">❄️</div>
+                <!-- Map 1: Green Suburbs -->
+                <div class="map-card map-suburbs" data-map-index="0">
+                    <div class="map-preview">🏡</div>
                     <div class="map-info">
-                        <div class="map-title">Winter Wonderland</div>
-                        <div class="map-desc">Snow-covered forest roads, icy surfaces, frozen obstacles, and long slippery drift curves.</div>
+                        <div class="map-title">Green Suburbs</div>
+                        <div class="map-desc">Suburban avenues, front-yard fences, blossoming trees, streetlights, and hydrant hazards. Roads 100% clear.</div>
                         <div class="map-stats">
-                            <span>SURFACE: SNOW / ICE</span>
-                            <span>TRACTION: 82%</span>
+                            <span>SURFACE: ASPHALT / LAWN</span>
+                            <span>TRACTION: 95%</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Map 2: Summer County -->
-                <div class="map-card map-summer" data-map-index="1">
-                    <div class="map-preview">☀️</div>
+                <!-- Map 2: River District -->
+                <div class="map-card map-river" data-map-index="1">
+                    <div class="map-preview">🌊</div>
                     <div class="map-info">
-                        <div class="map-title">Summer County</div>
-                        <div class="map-desc">Sunny rural farmlands, red barns, hay bales, and dusty country dirt tracks.</div>
+                        <div class="map-title">River District</div>
+                        <div class="map-desc">Scenic canals, stone and suspension bridges, shipping docks, and deep water hazards. Bridges are drivable!</div>
                         <div class="map-stats">
-                            <span>SURFACE: ASPHALT / DIRT</span>
-                            <span>TRACTION: 100%</span>
+                            <span>SURFACE: ROAD & WATERWAYS</span>
+                            <span>TRACTION: 98%</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Map 3: Spring Valley -->
-                <div class="map-card map-spring" data-map-index="2">
-                    <div class="map-preview">🌸</div>
+                <!-- Map 3: Neon Industrial Zone -->
+                <div class="map-card map-industrial" data-map-index="2">
+                    <div class="map-preview">⚡</div>
                     <div class="map-info">
-                        <div class="map-title">Spring Valley</div>
-                        <div class="map-desc">Blossoming cherry trees, scenic river bridges, flower stalls, and winding drift chicanes.</div>
+                        <div class="map-title">Neon Industrial Zone</div>
+                        <div class="map-desc">High-voltage freight warehouses, shipping containers, neon markings, oil drums, and heavy concrete barriers.</div>
                         <div class="map-stats">
-                            <span>SURFACE: SCENIC ROADWAY</span>
-                            <span>TRACTION: 94%</span>
+                            <span>SURFACE: INDUSTRIAL ASPHALT</span>
+                            <span>TRACTION: 92%</span>
                         </div>
                     </div>
                 </div>
@@ -100,7 +103,7 @@
             </button>
         </div>
 
-        <!-- 3. GARAGE SHOWROOM SCREEN (Exactly 4 Cars) -->
+        <!-- 3. GARAGE SHOWROOM SCREEN (10 Cars Roster) -->
         <div id="garage-screen" class="screen-overlay hidden">
             <div class="garage-container">
                 <div class="top-menu-bar" style="position: static; width: 100%; margin-bottom: 5px;">
@@ -123,7 +126,8 @@
                 <!-- Vehicle Metadata -->
                 <div class="garage-car-header">
                     <div id="garage-car-name" class="garage-car-name">Neon Compact</div>
-                    <div id="garage-car-type" class="garage-car-type">STARTER COMPACT</div>
+                    <div id="garage-car-type" class="garage-car-type">NORMAL • STARTER COMPACT</div>
+                    <div id="garage-car-rarity" class="rarity-badge badge-common">COMMON</div>
                     <div id="garage-car-desc" style="font-size: 0.85rem; color: #a0aec0; margin-top: 4px;">Nimble hot hatch with agile steering.</div>
                 </div>
 
@@ -145,15 +149,85 @@
                         <div class="spec-label">Armor / Durability</div>
                         <div class="spec-bar-bg"><div id="stat-armor" class="spec-bar-fill" style="width: 55%;"></div></div>
                     </div>
+                    <div class="spec-item">
+                        <div class="spec-label">Drift Angle</div>
+                        <div class="spec-bar-bg"><div id="stat-drift" class="spec-bar-fill" style="width: 60%;"></div></div>
+                    </div>
                 </div>
 
                 <!-- Status & Buy/Select Button -->
-                <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; max-width: 320px;">
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; max-width: 320px;">
                     <div id="garage-car-price" class="status-equipped">EQUIPPED</div>
                     <button id="garage-action-btn" class="btn-arcade btn-primary" style="width: 100%;">
                         SELECT CAR
                     </button>
+                    <button id="btn-garage-gacha" class="btn-arcade btn-secondary" style="width: 100%; font-size: 0.88rem; padding: 10px;">
+                        <span>🎰</span> OPEN CAR GACHA
+                    </button>
                 </div>
+            </div>
+        </div>
+
+        <!-- 3B. CAR GACHA SCREEN -->
+        <div id="gacha-screen" class="screen-overlay hidden">
+            <div class="gacha-container">
+                <div class="top-menu-bar" style="position: static; width: 100%; margin-bottom: 5px;">
+                    <button id="btn-gacha-back" class="btn-arcade btn-secondary" style="padding: 8px 16px; font-size: 0.9rem;">
+                        ◀ BACK
+                    </button>
+                    <div class="currency-badge">
+                        <span>💰</span>
+                        <span id="gacha-cash-display">$500</span>
+                    </div>
+                </div>
+
+                <div class="game-logo-container" style="margin-bottom: 8px;">
+                    <h2 class="game-title" style="font-size: 2.1rem;">NEON CAR GACHA</h2>
+                    <div class="game-subtitle">ROLL TO UNLOCK RARE, EPIC & LEGENDARY VEHICLES</div>
+                </div>
+
+                <!-- Animated Hologram Chamber -->
+                <div class="gacha-stage">
+                    <div class="gacha-neon-orb"></div>
+                </div>
+
+                <!-- Verified Odds Card -->
+                <div class="gacha-rates-card">
+                    <div style="font-size: 0.82rem; font-weight: 800; color: #a0aec0; text-align: center;">VERIFIED PROBABILITY TIERS</div>
+                    <div class="rates-row">
+                        <span class="rate-common">COMMON: 50%</span>
+                        <span class="rate-rare">RARE: 30%</span>
+                        <span class="rate-epic">EPIC: 15%</span>
+                        <span class="rate-legendary">LEGENDARY: 5%</span>
+                    </div>
+                    <div style="font-size: 0.72rem; color: #718093; text-align: center;">
+                        Total: 100% (Client-Side Storage) • Duplicates convert up to $5,000 cash refund
+                    </div>
+                </div>
+
+                <!-- Roll Buttons -->
+                <div class="gacha-actions-row">
+                    <button id="btn-gacha-roll-1" class="btn-arcade btn-secondary">
+                        ROLL 1x ($500)
+                    </button>
+                    <button id="btn-gacha-roll-10" class="btn-arcade btn-primary">
+                        ROLL 10x ($4,500)
+                    </button>
+                </div>
+
+                <div id="gacha-status-feedback" style="font-size: 0.82rem; color: #e74c3c; height: 18px;"></div>
+            </div>
+        </div>
+
+        <!-- 3C. GACHA REVEAL MODAL -->
+        <div id="gacha-reveal-modal" class="screen-overlay hidden">
+            <div class="reveal-modal-box">
+                <div class="modal-title" style="font-size: 1.8rem; color: #00d2ff;">GACHA REVEAL</div>
+                <div id="gacha-cards-container" class="cards-reveal-grid"></div>
+                <div id="gacha-summary-text"></div>
+                <button id="btn-gacha-reveal-close" class="btn-arcade btn-primary" style="margin-top: 14px; min-width: 200px;">
+                    COLLECT & CONTINUE
+                </button>
             </div>
         </div>
 

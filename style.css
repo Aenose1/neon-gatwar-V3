@@ -843,3 +843,203 @@ html, body {
         height: 52px;
     }
 }
+
+/* === RARITY BADGES === */
+.rarity-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+}
+.badge-common {
+    background: rgba(164, 176, 190, 0.25);
+    color: #cbd5e1;
+    border: 1px solid #94a3b8;
+}
+.badge-rare {
+    background: rgba(0, 210, 255, 0.2);
+    color: #00d2ff;
+    border: 1px solid #00d2ff;
+    box-shadow: 0 0 8px rgba(0, 210, 255, 0.4);
+}
+.badge-epic {
+    background: rgba(165, 94, 234, 0.2);
+    color: #e056fd;
+    border: 1px solid #a55eea;
+    box-shadow: 0 0 10px rgba(165, 94, 234, 0.5);
+}
+.badge-legendary {
+    background: rgba(241, 196, 15, 0.2);
+    color: #f1c40f;
+    border: 1px solid #f1c40f;
+    box-shadow: 0 0 14px rgba(241, 196, 15, 0.65);
+}
+
+/* === GACHA SYSTEM STYLES === */
+.gacha-container {
+    width: 100%;
+    max-width: 780px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.gacha-stage {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    margin: 14px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle, rgba(0, 210, 255, 0.12) 0%, rgba(10, 16, 26, 0.6) 80%);
+    border: 1px dashed rgba(0, 210, 255, 0.3);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.gacha-neon-orb {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ffffff 0%, #00d2ff 60%, #ff007f 100%);
+    box-shadow: 0 0 35px #00d2ff, 0 0 70px #ff007f;
+    animation: orbSpin 2.5s infinite linear;
+}
+
+@keyframes orbSpin {
+    0% { transform: rotate(0deg) scale(0.95); filter: hue-rotate(0deg); }
+    50% { transform: rotate(180deg) scale(1.08); filter: hue-rotate(90deg); }
+    100% { transform: rotate(360deg) scale(0.95); filter: hue-rotate(0deg); }
+}
+
+.gacha-rates-card {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.rates-row {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.rates-row span {
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
+.rate-common { color: #cbd5e1; }
+.rate-rare { color: #00d2ff; }
+.rate-epic { color: #e056fd; }
+.rate-legendary { color: #f1c40f; }
+
+.gacha-actions-row {
+    display: flex;
+    gap: 16px;
+    width: 100%;
+    max-width: 480px;
+    margin-bottom: 12px;
+}
+
+.gacha-actions-row .btn-arcade {
+    flex: 1;
+}
+
+/* === REVEAL MODAL === */
+.reveal-modal-box {
+    width: 100%;
+    max-width: 640px;
+    background: #0f1622;
+    border: 2px solid #00d2ff;
+    box-shadow: 0 0 30px rgba(0, 210, 255, 0.4);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.cards-reveal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 12px;
+    margin: 16px 0;
+}
+
+.gacha-card-item {
+    background: rgba(20, 28, 42, 0.95);
+    border-radius: 10px;
+    padding: 10px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    border: 2px solid transparent;
+    transition: transform 0.2s ease;
+}
+
+.gacha-card-item:hover {
+    transform: translateY(-3px);
+}
+
+.gacha-card-name {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #ffffff;
+    text-align: center;
+}
+
+.gacha-card-tag {
+    font-size: 0.65rem;
+    font-weight: 700;
+}
+
+.gacha-card-comp {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--gold);
+}
+
+/* Updated map theme accents */
+.map-suburbs {
+    border-color: rgba(112, 178, 99, 0.4);
+}
+.map-suburbs:hover {
+    border-color: #70b263;
+    box-shadow: 0 0 20px rgba(112, 178, 99, 0.4);
+}
+.map-river {
+    border-color: rgba(58, 136, 194, 0.4);
+}
+.map-river:hover {
+    border-color: #3a88c2;
+    box-shadow: 0 0 20px rgba(58, 136, 194, 0.5);
+}
+.map-industrial {
+    border-color: rgba(255, 0, 127, 0.4);
+}
+.map-industrial:hover {
+    border-color: #ff007f;
+    box-shadow: 0 0 20px rgba(255, 0, 127, 0.5);
+}
+

@@ -142,6 +142,25 @@ export class ParticleManager {
         }
     }
 
+    spawnWaterSplash(x, y, count = 14) {
+        for (let i = 0; i < count; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 120 + 40;
+            this.particles.push({
+                x: x + (Math.random() - 0.5) * 16,
+                y: y + (Math.random() - 0.5) * 16,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                size: Math.random() * 8 + 5,
+                growRate: 10,
+                life: 1.0,
+                decay: Math.random() * 2.2 + 1.8,
+                color: Math.random() > 0.4 ? 'rgba(75, 163, 227, ' : 'rgba(235, 245, 255, ',
+                type: 'smoke'
+            });
+        }
+    }
+
     spawnEmpWave(x, y, radius = 280) {
         this.particles.push({
             x, y,

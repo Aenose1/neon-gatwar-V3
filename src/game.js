@@ -1,4 +1,4 @@
-// src/game.js - Master game coordinator, state machine, and update/render loops
+// src/game.js - Master game coordinator, state machine, Gacha system, and update/render loops
 import { CONFIG } from './config.js';
 import { storage } from './storage.js';
 import { audio } from './audio.js';
@@ -13,6 +13,7 @@ import { ScoringManager } from './scoring.js';
 import { CollisionEngine } from './collisions.js';
 import { ControlsManager } from './controls.js';
 import { GarageManager } from './garage.js';
+import { GachaManager, GACHA_CONFIG } from './gacha.js';
 
 export class Game {
     constructor() {
@@ -35,6 +36,7 @@ export class Game {
         this.collisions = new CollisionEngine();
         this.controls = new ControlsManager(this.canvas);
         this.garage = new GarageManager(this);
+        this.gacha = new GachaManager(this);
 
         this.initWindow();
         this.initDOM();
@@ -66,6 +68,8 @@ export class Game {
         this.pauseModalEl = document.getElementById('pause-modal');
         this.gameOverEl = document.getElementById('game-over-screen');
         this.storyModalEl = document.getElementById('story-modal');
+        this.gachaScreenEl = document.getElementById('gacha-screen');
+        this.gachaRevealModalEl = document.getElementById('gacha-reveal-modal');
 
         // HUD Elements
         this.hudCashEl = document.getElementById('hud-cash');
@@ -77,6 +81,12 @@ export class Game {
         this.hudHealthPctEl = document.getElementById('hud-health-pct');
         this.hudSpeedEl = document.getElementById('hud-speed');
         this.hudNotificationEl = document.getElementById('hud-notification-banner');
+
+        // Gacha Elements
+        this.gachaCashEl = document.getElementById('gacha-cash-display');
+        this.gachaFeedbackEl = document.getElementById('gacha-status-feedback');
+        this.gachaCardsContainer = document.getElementById('gacha-cards-container');
+        this.gachaSummaryText = document.getElementById('gacha-summary-text');
 
         // Ability Buttons in HUD
         this.btnTank = document.getElementById('btn-ability-tank');
@@ -92,6 +102,16 @@ export class Game {
         document.getElementById('btn-play')?.addEventListener('click', () => {
             audio.ensureContext();
             this.showMapSelect();
+        });
+
+        document.getElementById('btn-gacha')?.addEventListener('click', () => {
+            audio.ensureContext();
+            this.showGacha();
+        });
+
+        document.getElementById('btn-garage-gacha')?.addEventListener('click', () => {
+            audio.ensureContext();
+            this.showGacha();
         });
 
         document.getElementById('btn-garage')?.addEventListener('click', () => {
@@ -127,6 +147,25 @@ export class Game {
 
         document.getElementById('btn-garage-back')?.addEventListener('click', () => {
             this.showMainMenu();
+        });
+
+        document.getElementById('btn-gacha-back')?.addEventListener('click', () => {
+            this.showMainMenu();
+        });
+
+        // Gacha Rolling Triggers
+        document.getElementById('btn-gacha-roll-1')?.addEventListener('click', () => {
+            audio.ensureContext();
+            this.handleGachaRoll(1);
+        });
+
+        document.getElementById('btn-gacha-roll-10')?.addEventListener('click', () => {
+            audio.ensureContext();
+            this.handleGachaRoll(10);
+        });
+
+        document.getElementById('btn-gacha-reveal-close')?.addEventListener('click', () => {
+            this.closeGachaReveal();
         });
 
         // Pause Modal
@@ -177,11 +216,23 @@ export class Game {
         });
     }
 
+    updateAllCashDisplays() {
+        const cash = storage.getCash();
+        const formatted = `$${cash.toLocaleString()}`;
+        const menuEl = document.getElementById('menu-cash-display');
+        const garageEl = document.getElementById('garage-cash-display');
+        const gachaEl = document.getElementById('gacha-cash-display');
+
+        if (menuEl) menuEl.textContent = formatted;
+        if (garageEl) garageEl.textContent = formatted;
+        if (gachaEl) gachaEl.textContent = formatted;
+    }
+
     showMainMenu() {
         this.hideAllScreens();
         this.mainMenuEl.classList.remove('hidden');
 
-        document.getElementById('menu-cash-display').textContent = `$${storage.getCash().toLocaleString()}`;
+        this.updateAllCashDisplays();
         document.getElementById('menu-highscore-display').textContent = storage.getHighScore().toLocaleString();
 
         this.player.setCarModel(storage.getSelectedCar());
@@ -207,6 +258,91 @@ export class Game {
         this.garage.screenEl.classList.remove('hidden');
         this.garage.show();
         this.state = 'GARAGE';
+    }
+
+    showGacha() {
+        this.hideAllScreens();
+        this.gachaScreenEl.classList.remove('hidden');
+        this.updateAllCashDisplays();
+        if (this.gachaFeedbackEl) this.gachaFeedbackEl.textContent = '';
+        this.state = 'GACHA';
+    }
+
+    handleGachaRoll(count = 1) {
+        if (this.gacha.isRolling) return;
+        if (this.gachaFeedbackEl) this.gachaFeedbackEl.textContent = '';
+
+        const outcome = count === 10 ? this.gacha.executeMultiRoll() : this.gacha.executeSingleRoll();
+
+        if (!outcome.success) {
+            if (this.gachaFeedbackEl) {
+                this.gachaFeedbackEl.textContent = `INSUFFICIENT FUNDS! NEED $${outcome.cost || 500} COINS`;
+            }
+            return;
+        }
+
+        audio.playGachaRoll();
+        this.updateAllCashDisplays();
+
+        // Briefly simulate rolling tension then show reveal cards
+        setTimeout(() => {
+            this.showGachaReveal(outcome.rolls);
+        }, 350);
+    }
+
+    showGachaReveal(rolls) {
+        if (!this.gachaCardsContainer) return;
+        this.gachaCardsContainer.innerHTML = '';
+
+        let totalRefund = 0;
+        let newCarCount = 0;
+        let bestRarity = 'common';
+        const rarityWeights = { common: 1, rare: 2, epic: 3, legendary: 4 };
+
+        rolls.forEach((item) => {
+            if (rarityWeights[item.rarity] > rarityWeights[bestRarity]) {
+                bestRarity = item.rarity;
+            }
+
+            if (item.isDuplicate) {
+                totalRefund += item.compensation;
+            } else {
+                newCarCount++;
+            }
+
+            const card = document.createElement('div');
+            card.className = 'gacha-card-item';
+            card.style.borderColor = item.color;
+            card.style.boxShadow = `0 0 15px ${item.glow}`;
+
+            card.innerHTML = `
+                <div class="rarity-badge badge-${item.rarity}">${item.rarity.toUpperCase()}</div>
+                <div class="gacha-card-name">${item.car.name}</div>
+                <div style="font-size: 0.68rem; color: #a0aec0;">${item.car.category.toUpperCase()}</div>
+                ${item.isDuplicate 
+                    ? `<div class="gacha-card-comp">DUPE: +$${item.compensation}</div>` 
+                    : `<div style="font-size: 0.72rem; color: #2ecc71; font-weight: 800;">★ NEW UNLOCK!</div>`}
+            `;
+            this.gachaCardsContainer.appendChild(card);
+        });
+
+        audio.playGachaReveal(bestRarity);
+
+        if (this.gachaSummaryText) {
+            let summary = '';
+            if (newCarCount > 0) summary += `Unlocked ${newCarCount} New Vehicle${newCarCount > 1 ? 's' : ''}! `;
+            if (totalRefund > 0) summary += `Duplicate Cash Refund: +$${totalRefund.toLocaleString()}`;
+            this.gachaSummaryText.textContent = summary;
+        }
+
+        this.gachaRevealModalEl.classList.remove('hidden');
+        this.updateAllCashDisplays();
+    }
+
+    closeGachaReveal() {
+        this.gachaRevealModalEl.classList.add('hidden');
+        this.gacha.finishRoll();
+        this.updateAllCashDisplays();
     }
 
     selectMapAndStart(mapIndex) {
@@ -272,7 +408,6 @@ export class Game {
 
         const result = this.abilities.triggerAbility(id, this.player, this.police, this.particles);
         if (!result.success && result.reason) {
-            // Visual feedback if player tries to use cooling-down ability
             this.particles.addFloatingText(result.reason, this.player.x, this.player.y - 25, '#ff4757', 16);
         }
     }
@@ -416,18 +551,25 @@ export class Game {
         this.updateAbilityButton(this.btnOil, this.abilities.abilities.oil);
         this.updateAbilityButton(this.btnEmp, this.abilities.abilities.emp);
 
-        // Recovery / Police Escalation banner notifications
+        // Recovery / Police Escalation / Water Hazard banner notifications
         const recoveryMsg = this.recovery.getMessage();
         const policeMsg = this.police.getAnnouncement();
+        const waterMsg = this.player.waterHazardMessage;
 
         if (this.hudNotificationEl) {
-            const activeMsg = recoveryMsg || policeMsg;
+            const activeMsg = waterMsg || recoveryMsg || policeMsg;
             if (activeMsg) {
                 this.hudNotificationEl.textContent = activeMsg;
                 this.hudNotificationEl.classList.remove('hidden');
             } else {
                 this.hudNotificationEl.classList.add('hidden');
             }
+        }
+
+        if (this.player.waterHazardMessage) {
+            setTimeout(() => {
+                this.player.waterHazardMessage = '';
+            }, 1600);
         }
     }
 
@@ -448,7 +590,6 @@ export class Game {
             const pct = (ability.timer / ability.cooldown) * 100;
             if (cdOverlay) cdOverlay.style.height = `${pct}%`;
 
-            // Format as MM:SS or seconds
             const mins = Math.floor(ability.timer / 60);
             const secs = Math.ceil(ability.timer % 60);
             if (cdText) {
@@ -486,6 +627,8 @@ export class Game {
         this.mainMenuEl?.classList.add('hidden');
         this.mapSelectEl?.classList.add('hidden');
         this.garage.screenEl?.classList.add('hidden');
+        this.gachaScreenEl?.classList.add('hidden');
+        this.gachaRevealModalEl?.classList.add('hidden');
         this.hudEl?.classList.add('hidden');
         this.pauseModalEl?.classList.add('hidden');
         this.gameOverEl?.classList.add('hidden');

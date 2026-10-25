@@ -1,4 +1,4 @@
-// src/garage.js - Garage showroom, 3D rotating turntable, car selection, and purchasing
+// src/garage.js - Garage showroom, 3D rotating turntable, car selection, and purchasing for all 10 vehicles
 import { CAR_MODELS } from './config.js';
 import { storage } from './storage.js';
 import { audio } from './audio.js';
@@ -6,7 +6,11 @@ import { audio } from './audio.js';
 export class GarageManager {
     constructor(game) {
         this.game = game;
-        this.carKeys = ['compact', 'street', 'muscle', 'super'];
+        this.carKeys = [
+            'compact', 'sedan', 'hatchback', 'cruiser',
+            'vortex', 'phantom', 'inferno',
+            'apex', 'velocity', 'thunderbolt'
+        ];
         this.currentIndex = 0;
         this.turntableAngle = 0;
 
@@ -22,12 +26,14 @@ export class GarageManager {
 
         this.carNameEl = document.getElementById('garage-car-name');
         this.carTypeEl = document.getElementById('garage-car-type');
+        this.carRarityEl = document.getElementById('garage-car-rarity');
         this.carDescEl = document.getElementById('garage-car-desc');
         this.carPriceEl = document.getElementById('garage-car-price');
         this.statSpeedEl = document.getElementById('stat-speed');
         this.statAccelEl = document.getElementById('stat-accel');
         this.statHandlingEl = document.getElementById('stat-handling');
         this.statArmorEl = document.getElementById('stat-armor');
+        this.statDriftEl = document.getElementById('stat-drift');
         this.actionBtn = document.getElementById('garage-action-btn');
         this.cashDisplayEl = document.getElementById('garage-cash-display');
 
@@ -62,7 +68,13 @@ export class GarageManager {
         const userCash = storage.getCash();
 
         if (this.carNameEl) this.carNameEl.textContent = car.name;
-        if (this.carTypeEl) this.carTypeEl.textContent = car.type.toUpperCase();
+        if (this.carTypeEl) this.carTypeEl.textContent = `${car.category.toUpperCase()} • ${car.type.toUpperCase()}`;
+
+        if (this.carRarityEl) {
+            this.carRarityEl.textContent = car.rarity.toUpperCase();
+            this.carRarityEl.className = `rarity-badge badge-${car.rarity}`;
+        }
+
         if (this.carDescEl) this.carDescEl.textContent = car.description;
         if (this.cashDisplayEl) this.cashDisplayEl.textContent = `$${userCash.toLocaleString()}`;
 
@@ -70,6 +82,7 @@ export class GarageManager {
         if (this.statAccelEl) this.statAccelEl.style.width = `${car.stats.accel}%`;
         if (this.statHandlingEl) this.statHandlingEl.style.width = `${car.stats.handling}%`;
         if (this.statArmorEl) this.statArmorEl.style.width = `${car.stats.armor}%`;
+        if (this.statDriftEl) this.statDriftEl.style.width = `${car.stats.drift || 70}%`;
 
         if (this.carPriceEl) {
             this.carPriceEl.textContent = isOwned ? (isSelected ? 'EQUIPPED' : 'OWNED') : `$${car.price.toLocaleString()}`;
@@ -161,11 +174,21 @@ export class GarageManager {
 
         ctx.rotate(this.turntableAngle);
 
+        // Save current equipped car properties to not mutate active player car permanently
+        const currentCarId = this.game.player.carId;
+        const currentModel = this.game.player.model;
+
         this.game.player.carId = model.id;
         this.game.player.model = model;
         this.game.player.width = model.width;
         this.game.player.length = model.length;
         this.game.player.drawCar(ctx);
+
+        // Restore active car model reference
+        this.game.player.carId = currentCarId;
+        this.game.player.model = currentModel;
+        this.game.player.width = currentModel.width;
+        this.game.player.length = currentModel.length;
 
         ctx.restore();
     }
