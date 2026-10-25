@@ -218,42 +218,8 @@ export class ControlsManager {
         }
     }
 
-    // Render mobile circular touch control ONLY on mobile devices
+    // Unwanted circular overlay removed from game screen
     drawMobileControls(ctx) {
-        if (!this.isTouchDevice) return; // Never show on desktop!
-
-        const c = this.touchControl;
-        ctx.save();
-
-        // Translucent white circular outline (transparent interior keeps road visible)
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
-        ctx.lineWidth = 3.5;
-        ctx.beginPath();
-        ctx.arc(c.centerX, c.centerY, c.radius, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // Directional notch arrows
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(c.centerX - c.radius + 8, c.centerY - 6);
-        ctx.lineTo(c.centerX - c.radius + 2, c.centerY);
-        ctx.lineTo(c.centerX - c.radius + 8, c.centerY + 6);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(c.centerX + c.radius - 8, c.centerY - 6);
-        ctx.lineTo(c.centerX + c.radius - 2, c.centerY);
-        ctx.lineTo(c.centerX + c.radius - 8, c.centerY + 6);
-        ctx.stroke();
-
-        if (c.active) {
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
-            ctx.beginPath();
-            ctx.arc(c.centerX + c.dragOffset, c.centerY, 14, 0, Math.PI * 2);
-            ctx.fill();
-        }
-
-        ctx.restore();
+        // No unwanted circle artifacts rendered
     }
 }

@@ -2,8 +2,11 @@
 import { CONFIG } from './config.js';
 import { audio } from './audio.js';
 
+let copIdCounter = 0;
+
 export class PoliceCar {
     constructor(type = 'blue', x = 0, y = 0, angle = 0) {
+        this.id = `cop_${++copIdCounter}`;
         this.type = type; // 'blue' (standard) or 'black' (advanced)
         this.x = x;
         this.y = y;
@@ -11,6 +14,10 @@ export class PoliceCar {
         this.speed = 120;
         this.vx = 0;
         this.vy = 0;
+
+        // Collision contact tracking: applies damage once per collision event, not every frame
+        this.isHittingPlayer = false;
+        this.hitCooldownTimer = 0;
 
         if (this.type === 'black') {
             // Advanced Black Police Interceptor
@@ -69,6 +76,13 @@ export class PoliceCar {
         if (this.isWrecked) return;
 
         this.sirenTimer += dt * 10;
+
+        if (this.hitCooldownTimer > 0) {
+            this.hitCooldownTimer -= dt;
+            if (this.hitCooldownTimer <= 0) {
+                this.isHittingPlayer = false;
+            }
+        }
 
         // 1. EMP Stun
         if (this.isStunned) {

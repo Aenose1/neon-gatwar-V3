@@ -127,14 +127,10 @@ export class PlayerCar {
                 this.speed = 110;
                 this.waterTimer = 0;
 
-                // Take water hazard damage
-                const dmg = this.takeCollisionDamage('water_hazard', 140);
+                // Environmental water hazard rescue (does not reduce vehicle health)
                 if (particleManager) {
                     particleManager.spawnWaterSplash(safePoint.x, safePoint.y, 18);
                     particleManager.addFloatingText('WATER HAZARD! RESET TO ROAD', safePoint.x, safePoint.y - 35, '#00d2ff', 18, true);
-                    if (dmg > 0) {
-                        particleManager.addFloatingText(`-${dmg} HP`, safePoint.x, safePoint.y - 15, '#e74c3c', 16);
-                    }
                 }
                 this.waterHazardMessage = 'WATER HAZARD! VEHICLE RECOVERED';
             }

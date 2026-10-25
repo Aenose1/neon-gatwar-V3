@@ -115,16 +115,11 @@ export class CollisionEngine {
 
                 if (player.speed > 0) {
                     const preImpactSpeed = player.speed;
-                    const damageDealt = player.takeCollisionDamage(p.id, Math.abs(preImpactSpeed));
-
+                    // Environmental solid props DO NOT damage the player car
                     player.speed = -Math.min(45, preImpactSpeed * 0.3);
                     audio.playHit();
                     camera.shake(Math.min(12, 4 + Math.abs(preImpactSpeed) * 0.02));
                     particleManager.spawnSparks(player.x, player.y, 10);
-
-                    if (damageDealt > 0) {
-                        particleManager.addFloatingText(`-${damageDealt} HP`, player.x, player.y - 20, '#e74c3c', 16);
-                    }
                 }
                 // When player.speed <= 0 (actively reversing), allow the car to back away freely
             }
@@ -155,16 +150,11 @@ export class CollisionEngine {
 
                 if (player.speed > 0) {
                     const preImpactSpeed = player.speed;
-                    const damageDealt = player.takeCollisionDamage(b.id, preImpactSpeed);
-
+                    // Environmental buildings DO NOT damage the player car
                     player.speed = -Math.min(50, preImpactSpeed * 0.3);
                     audio.playHit();
                     camera.shake(Math.min(18, 6 + Math.abs(preImpactSpeed) * 0.025));
                     particleManager.spawnSparks(player.x, player.y, 14);
-
-                    if (damageDealt > 0) {
-                        particleManager.addFloatingText(`-${damageDealt} HP`, player.x, player.y - 20, '#e74c3c', 16);
-                    }
                 }
                 // When player.speed <= 0 (actively reversing), allow the car to back away freely
             }
@@ -179,11 +169,11 @@ export class CollisionEngine {
             const dx = cop.x - player.x;
             const dy = cop.y - player.y;
             const dist = Math.hypot(dx, dy);
+            const safeDist = dist || 0.1;
             const minDist = player.radius + cop.radius;
-
-            if (dist < minDist && dist > 0) {
-                const normX = dx / dist;
-                const normY = dy / dist;
+            if (dist < minDist) {
+                const normX = dx / safeDist;
+                const normY = dy / safeDist;
 
                 if (player.isTank) {
                     // Tank obliterates police car instantly
@@ -206,22 +196,36 @@ export class CollisionEngine {
                     cop.x += normX * pushDist;
                     cop.y += normY * pushDist;
 
-                    const ramMultiplier = player.carId === 'cruiser' ? 2.5 : 1.0;
-                    const damageToCop = Math.max(15, (relSpeed * 0.12) * ramMultiplier);
-                    const damageToPlayer = player.takeCollisionDamage(`cop_${i}`, relSpeed * 0.6);
+                    // Apply damage only ONCE per collision event (not repeatedly every frame while cars overlap)
+                    if (!cop.isHittingPlayer) {
+                        cop.isHittingPlayer = true;
+                        cop.hitCooldownTimer = 0.8;
 
-                    cop.takeDamage(damageToCop);
+                        const ramMultiplier = player.carId === 'cruiser' ? 2.5 : 1.0;
+                        const damageToCop = Math.max(18, (relSpeed * 0.14) * ramMultiplier);
+                        const damageToPlayer = player.takeCollisionDamage(cop.id || `cop_${i}`, Math.max(70, relSpeed * 0.65));
 
-                    if (cop.isWrecked) {
-                        const reward = cop.type === 'black' ? 1000 : 500;
-                        scoringManager.addDirectCash(reward);
-                        scoringManager.addDirectScore(2000);
+                        cop.takeDamage(damageToCop);
+
+                        if (damageToPlayer > 0) {
+                            particleManager.addFloatingText(`-${damageToPlayer} HP`, player.x, player.y - 20, '#e74c3c', 18);
+                        }
+
+                        if (cop.isWrecked) {
+                            const reward = cop.type === 'black' ? 1000 : 500;
+                            scoringManager.addDirectCash(reward);
+                            scoringManager.addDirectScore(2000);
+                            particleManager.addFloatingText(`COP WRECKED! +$${reward}`, cop.x, cop.y - 30, '#f1c40f', 20, true);
+                        }
+
+                        audio.playHit();
+                        camera.shake(Math.min(16, 6 + relSpeed * 0.02));
+                        particleManager.spawnSparks((player.x + cop.x) / 2, (player.y + cop.y) / 2, 12);
                     }
-
-                    audio.playHit();
-                    camera.shake(8);
-                    particleManager.spawnSparks((player.x + cop.x) / 2, (player.y + cop.y) / 2, 10);
                 }
+            } else if (dist >= minDist + 15) {
+                // Reset collision contact once vehicles separate
+                cop.isHittingPlayer = false;
             }
         }
     }

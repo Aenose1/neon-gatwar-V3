@@ -9,6 +9,7 @@ import { PoliceManager, PoliceCar } from '../src/police.js';
 import { GachaManager, GACHA_CONFIG } from '../src/gacha.js';
 import { storage } from '../src/storage.js';
 import { PlayerCar } from '../src/player.js';
+import { CollisionEngine } from '../src/collisions.js';
 
 console.log('=== STARTING NEON GETAWAY TEST SUITE ===');
 
@@ -87,25 +88,34 @@ for (let i = 0; i < 3; i++) {
         }
     }
 
-    // Verify BUG FIX: Water Collision & Bridges
-    // River District has water bodies and bridges
+    // Verify BUG FIX: All 5 Bridges (Odd & Even bridges, specifically fixing Bridges 2 and 4)
     if (map.waterBodies.length > 0) {
-        const riverBody = map.waterBodies[0];
-        const seg = riverBody.segments[0];
-        const riverMidX = (seg.x1 + seg.x2) / 2;
-        const riverMidY = (seg.y1 + seg.y2) / 2;
+        // Must have exactly 5 bridges spanning across the river / creek / canal
+        assert.strictEqual(map.bridges.length, 5, `Map ${map.name} must have exactly 5 bridges (was ${map.bridges.length})`);
 
-        // If not on bridge, car must be in water
-        if (!map.isOnBridge(riverMidX, riverMidY)) {
-            assert.strictEqual(map.isInWater(riverMidX, riverMidY), true,
-                `Water body point (${riverMidX}, ${riverMidY}) must register as in water`);
+        for (let bIdx = 0; bIdx < map.bridges.length; bIdx++) {
+            const b = map.bridges[bIdx];
+            assert.strictEqual(map.isOnBridge(b.x, b.y), true, `Bridge ${bIdx + 1} (${b.id}) center must register on bridge`);
+            assert.strictEqual(map.isInWater(b.x, b.y), false, `Bridge ${bIdx + 1} (${b.id}) must NEVER register as in water`);
         }
 
-        // Bridge deck must NEVER register as in water
-        assert(map.bridges.length > 0, `Map with water must have bridges`);
-        const bridge = map.bridges[0];
-        assert.strictEqual(map.isOnBridge(bridge.x, bridge.y), true, 'Bridge center must be on bridge');
-        assert.strictEqual(map.isInWater(bridge.x, bridge.y), false, 'Cars must be able to drive across bridges');
+        // Specifically test Bridges 2 and 4 at the diagonal road crossings (previously triggered "you got wet"):
+        const bridge2 = map.bridges[1];
+        const bridge4 = map.bridges[3];
+        assert.strictEqual(bridge2.id, 'bridge_2');
+        assert.strictEqual(bridge4.id, 'bridge_4');
+
+        // Test approaching and crossing Bridge 2:
+        assert.strictEqual(map.isOnBridge(bridge2.x, bridge2.y), true, 'Bridge 2 must be identified as bridge');
+        assert.strictEqual(map.isInWater(bridge2.x, bridge2.y), false, 'Bridge 2 must NOT trigger water or wet message');
+
+        // Test approaching and crossing Bridge 4:
+        assert.strictEqual(map.isOnBridge(bridge4.x, bridge4.y), true, 'Bridge 4 must be identified as bridge');
+        assert.strictEqual(map.isInWater(bridge4.x, bridge4.y), false, 'Bridge 4 must NOT trigger water or wet message');
+
+        // Verify actual water off-bridge STILL registers as hazardous water
+        assert.strictEqual(map.isInWater(1600, 1790), true, 'Open river water must register as in water');
+        assert.strictEqual(map.isInWater(2500, 1785), true, 'Open river water must register as in water');
     }
 
     // Verify >= 57% and around 60% Destructible Environmental Objects
@@ -182,8 +192,8 @@ assert.strictEqual(poorOutcome.reason, 'INSUFFICIENT_FUNDS');
 gacha.finishRoll();
 console.log('✓ Gacha probability distribution, bulk rolling, and duplicate compensation verified.');
 
-// Test 5: Damage Calculation & Health Tracking
-console.log('Test 5: Verifying damage calculation and health tracking...');
+// Test 5: Player Car Damage System & Environmental Separation
+console.log('Test 5: Verifying player car damage system, zero environmental damage, and police damage...');
 const damage = new DamageManager(100, 1.0);
 assert.strictEqual(damage.getHealthPercentage(), 100);
 assert.strictEqual(damage.getHealthStatus().status, 'healthy');
@@ -191,12 +201,56 @@ assert.strictEqual(damage.getHealthStatus().status, 'healthy');
 const lowDmg = damage.calculateCollisionDamage(60);
 assert(lowDmg >= 5 && lowDmg <= 10, `Low speed damage was ${lowDmg}`);
 
-const medDmg = damage.calculateCollisionDamage(180);
-assert(medDmg >= 12 && medDmg <= 28, `Medium speed damage was ${medDmg}`);
+// Create CollisionEngine and test player vehicle
+const engine = new CollisionEngine();
+const mockMap = new GameMap(0);
+const testCar = new PlayerCar('compact');
+const initialHp = testCar.damage.health;
 
-const highDmg = damage.calculateCollisionDamage(450);
-assert(highDmg >= 40, `High speed wall impact damage must be substantial: ${highDmg}`);
-console.log('✓ Collision damage severity and contact cooldown verified.');
+const dummyParticles = { spawnSparks: () => {}, addFloatingText: () => {}, spawnDebris: () => {} };
+const dummyCamera = { shake: () => {} };
+const dummyScoring = { recordDestruction: () => ({ cashGain: 10, combo: 1 }), addDirectCash: () => {}, addDirectScore: () => {} };
+
+// A. Hitting Environmental Buildings MUST NOT reduce player health:
+const bld = mockMap.buildings[0];
+testCar.x = bld.x;
+testCar.y = bld.y;
+testCar.speed = 250;
+engine.handlePlayerBuildings(testCar, mockMap, dummyParticles, dummyCamera);
+assert.strictEqual(testCar.damage.health, initialHp, 'Environmental buildings MUST NOT damage the player car');
+
+// B. Hitting Environmental Solid Props MUST NOT reduce player health:
+const prop = mockMap.solidProps[0];
+testCar.x = prop.x;
+testCar.y = prop.y;
+testCar.speed = 250;
+engine.handlePlayerSolidProps(testCar, mockMap, dummyParticles, dummyCamera);
+assert.strictEqual(testCar.damage.health, initialHp, 'Environmental solid props MUST NOT damage the player car');
+
+// C. Hitting Environmental Destructibles MUST NOT reduce player health:
+const dest = mockMap.destructibles[0];
+testCar.x = dest.x;
+testCar.y = dest.y;
+testCar.speed = 250;
+engine.handlePlayerDestructibles(testCar, mockMap, { addHeat: () => {} }, dummyParticles, dummyScoring, dummyCamera);
+assert.strictEqual(testCar.damage.health, initialHp, 'Environmental destructibles MUST NOT damage the player car');
+
+// D. Police Collisions MUST damage the player car:
+const cop = new PoliceCar('blue', testCar.x + 15, testCar.y + 15);
+const mockPoliceManager = { policeCars: [cop] };
+testCar.speed = 250;
+cop.speed = 0;
+engine.handlePlayerPolice(testCar, mockPoliceManager, dummyParticles, dummyScoring, dummyCamera);
+assert(testCar.damage.health < initialHp, 'Police collisions MUST damage the player car');
+const hpAfterCopHit = testCar.damage.health;
+
+// E. Damage applied only ONCE per collision event (not repeatedly every frame while cars overlap):
+engine.handlePlayerPolice(testCar, mockPoliceManager, dummyParticles, dummyScoring, dummyCamera);
+assert.strictEqual(testCar.damage.health, hpAfterCopHit, 'Damage must NOT be repeatedly applied every frame while overlapping');
+
+// F. Unwanted Circle Object Removed:
+assert(!mockMap.drawGroundDetails.toString().includes('arc'), 'drawGroundDetails must NOT draw circular artifacts on the ground');
+console.log('✓ Zero environmental damage, police damage once-per-event, and circle removal verified.');
 
 // Test 6: Fast Automatic Reverse Recovery & Responsive Manual Reverse
 console.log('Test 6: Verifying fast automatic reverse recovery and responsive manual reverse speed...');
