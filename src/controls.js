@@ -445,7 +445,7 @@ export class ControlsManager {
         }
 
         // 3. Desktop Mouse Steering Logic (Smooth pointer tracking)
-        if (!this.isTouchDevice && player && camera && this.mouseInCanvas) {
+        if (player && camera && this.mouseInCanvas && !this.joystick.active && !this.directSteer.active) {
             const playerScreen = camera.worldToScreen(player.x, player.y);
             const dx = this.mouseX - playerScreen.x;
             const dy = this.mouseY - playerScreen.y;
@@ -462,6 +462,10 @@ export class ControlsManager {
                 this.hasSteerVector = true;
             } else {
                 this.steerAmount *= 0.8;
+                if (Math.abs(this.steerAmount) < 0.02) {
+                    this.steerAmount = 0;
+                    this.hasSteerVector = false;
+                }
             }
         } else if (!this.hasSteerVector && this.keySteer === 0) {
             // Natural recentering

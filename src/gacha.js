@@ -122,6 +122,9 @@ export class GachaManager {
         }
 
         this.isRolling = true;
+        clearTimeout(this.rollTimeout);
+        this.rollTimeout = setTimeout(() => { this.isRolling = false; }, 4000);
+
         const deducted = storage.deductCash(GACHA_CONFIG.SINGLE_COST);
         if (!deducted) {
             this.isRolling = false;
@@ -146,6 +149,9 @@ export class GachaManager {
         }
 
         this.isRolling = true;
+        clearTimeout(this.rollTimeout);
+        this.rollTimeout = setTimeout(() => { this.isRolling = false; }, 4000);
+
         const deducted = storage.deductCash(GACHA_CONFIG.MULTI_COST);
         if (!deducted) {
             this.isRolling = false;
@@ -166,6 +172,7 @@ export class GachaManager {
     }
 
     finishRoll() {
+        clearTimeout(this.rollTimeout);
         this.isRolling = false;
     }
 }

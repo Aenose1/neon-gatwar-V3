@@ -867,6 +867,7 @@ export class GameMap {
     drawRoads(ctx, camera) {
         ctx.save();
 
+        const visibleRoads = [];
         for (let i = 0; i < this.roads.length; i++) {
             const r = this.roads[i];
             const midX = (r.x1 + r.x2) / 2;
@@ -889,35 +890,46 @@ export class GameMap {
                 }
             }
 
-            // Outer road borders / curbs
+            visibleRoads.push({ r, curRoadBorder, curRoadColor });
+        }
+
+        // PASS 1: Draw ALL road curbs / borders together first
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        for (let i = 0; i < visibleRoads.length; i++) {
+            const { r, curRoadBorder } = visibleRoads[i];
             ctx.strokeStyle = curRoadBorder;
             ctx.lineWidth = r.width + 12;
-            ctx.lineCap = 'round';
             ctx.beginPath();
             ctx.moveTo(r.x1, r.y1);
             ctx.lineTo(r.x2, r.y2);
             ctx.stroke();
+        }
 
-            // Main asphalt surface
+        // PASS 2: Draw ALL asphalt road surfaces on top (seamlessly merging intersections)
+        for (let i = 0; i < visibleRoads.length; i++) {
+            const { r, curRoadColor } = visibleRoads[i];
             ctx.strokeStyle = curRoadColor;
             ctx.lineWidth = r.width;
-            ctx.lineCap = 'round';
             ctx.beginPath();
             ctx.moveTo(r.x1, r.y1);
             ctx.lineTo(r.x2, r.y2);
             ctx.stroke();
-
-            // Center dash line
-            ctx.strokeStyle = this.config.roadLineColor;
-            ctx.lineWidth = 3;
-            ctx.lineCap = 'butt';
-            ctx.setLineDash([24, 20]);
-            ctx.beginPath();
-            ctx.moveTo(r.x1, r.y1);
-            ctx.lineTo(r.x2, r.y2);
-            ctx.stroke();
-            ctx.setLineDash([]);
         }
+
+        // PASS 3: Draw lane markings
+        ctx.strokeStyle = this.config.roadLineColor;
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'butt';
+        ctx.setLineDash([24, 20]);
+        for (let i = 0; i < visibleRoads.length; i++) {
+            const { r } = visibleRoads[i];
+            ctx.beginPath();
+            ctx.moveTo(r.x1, r.y1);
+            ctx.lineTo(r.x2, r.y2);
+            ctx.stroke();
+        }
+        ctx.setLineDash([]);
 
         ctx.restore();
     }

@@ -199,12 +199,26 @@ export class Game {
 
         document.getElementById('btn-gacha-again-1')?.addEventListener('click', () => {
             audio.ensureContext();
+            if (storage.getCash() < GACHA_CONFIG.SINGLE_COST) {
+                if (this.gachaSummaryText) {
+                    this.gachaSummaryText.textContent = `⚠️ Insufficient cash! Need $${GACHA_CONFIG.SINGLE_COST.toLocaleString()} to roll.`;
+                    this.gachaSummaryText.style.color = '#ff4757';
+                }
+                return;
+            }
             this.closeGachaReveal();
             this.handleGachaRoll(1);
         });
 
         document.getElementById('btn-gacha-again-10')?.addEventListener('click', () => {
             audio.ensureContext();
+            if (storage.getCash() < GACHA_CONFIG.MULTI_COST) {
+                if (this.gachaSummaryText) {
+                    this.gachaSummaryText.textContent = `⚠️ Insufficient cash! Need $${GACHA_CONFIG.MULTI_COST.toLocaleString()} to roll 10x.`;
+                    this.gachaSummaryText.style.color = '#ff4757';
+                }
+                return;
+            }
             this.closeGachaReveal();
             this.handleGachaRoll(10);
         });
@@ -517,6 +531,10 @@ export class Game {
             return;
         }
 
+        if (this.gachaFeedbackEl) {
+            this.gachaFeedbackEl.textContent = '';
+        }
+
         this.updateAllCashDisplays();
 
         // Identify highest rarity in roll
@@ -537,6 +555,7 @@ export class Game {
     showGachaReveal(rolls) {
         if (!this.gachaCardsContainer) return;
         this.gachaCardsContainer.innerHTML = '';
+        this.gacha.finishRoll();
 
         let totalRefund = 0;
         let newCarCount = 0;
@@ -660,8 +679,12 @@ export class Game {
         const dt = Math.min((currentTime - this.lastTime) / 1000, 0.05);
         this.lastTime = currentTime;
 
-        this.update(dt);
-        this.render(dt);
+        try {
+            this.update(dt);
+            this.render(dt);
+        } catch (err) {
+            console.error('Animation loop exception caught safely:', err);
+        }
 
         requestAnimationFrame((t) => this.loop(t));
     }
@@ -917,6 +940,7 @@ export class Game {
         this.hudEl?.classList.add('hidden');
         this.pauseModalEl?.classList.add('hidden');
         this.gameOverEl?.classList.add('hidden');
+        document.getElementById('gacha-warp-overlay')?.classList.add('hidden');
     }
 
     render(dt) {

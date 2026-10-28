@@ -34,6 +34,14 @@ export class GachaAnimator {
                 this.skip();
             });
         }
+
+        if (this.overlayEl) {
+            this.overlayEl.addEventListener('click', (e) => {
+                if (this.animating) {
+                    this.skip();
+                }
+            });
+        }
     }
 
     resizeCanvas() {
@@ -58,7 +66,13 @@ export class GachaAnimator {
     }
 
     play(bestRarity = 'common', onComplete) {
+        if (this.animFrameId) {
+            cancelAnimationFrame(this.animFrameId);
+            this.animFrameId = null;
+        }
+
         if (!this.canvas || !this.overlayEl) {
+            this.animating = false;
             if (onComplete) onComplete();
             return;
         }
@@ -241,13 +255,13 @@ export class GachaAnimator {
     }
 
     complete() {
-        if (!this.animating) return;
-        this.animating = false;
-
         if (this.animFrameId) {
             cancelAnimationFrame(this.animFrameId);
             this.animFrameId = null;
         }
+
+        if (!this.animating && !this.onCompleteCallback) return;
+        this.animating = false;
 
         audio.playGachaBurst();
 

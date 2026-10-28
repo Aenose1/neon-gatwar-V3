@@ -90,6 +90,30 @@ export class ParticleManager {
         }
     }
 
+    spawnSparks(x, y, count = 10, color = '#f1c40f') {
+        if (this.particles.length >= this.maxParticles) return;
+        for (let i = 0; i < count; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 220 + 60;
+            this.particles.push({
+                x,
+                y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                size: Math.random() * 4 + 2,
+                growRate: -1.5,
+                life: 1.0,
+                decay: Math.random() * 2.5 + 2.0,
+                color,
+                type: 'spark'
+            });
+        }
+    }
+
+    spawnEmpWave(x, y, radius = 280) {
+        return this.spawnEMPShockwave(x, y, radius);
+    }
+
     spawnExplosion(x, y, radius = 50) {
         for (let i = 0; i < 35; i++) {
             const angle = Math.random() * Math.PI * 2;

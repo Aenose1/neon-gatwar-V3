@@ -1133,7 +1133,7 @@ html, body {
 }
 
 .gacha-card-item {
-    animation: cardRevealPop 0.45s ease-out forwards;
+    animation: cardRevealPop 0.45s ease-out both;
 }
 
 @keyframes cardRevealPop {
