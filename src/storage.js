@@ -1,4 +1,4 @@
-// src/storage.js - LocalStorage persistence for player progress
+// src/storage.js - LocalStorage persistence for player progress and driver ranking
 const STORAGE_KEY = 'neon_getaway_save_v1';
 
 const DEFAULT_SAVE = {
@@ -12,7 +12,9 @@ const DEFAULT_SAVE = {
         totalSmashed: 0,
         totalCopsWrecked: 0,
         totalRuns: 0,
-        totalCashEarned: 500
+        totalCashEarned: 500,
+        totalRP: 0,
+        claimedRankRewards: []
     }
 };
 
@@ -30,7 +32,13 @@ class StorageManager {
             return {
                 ...DEFAULT_SAVE,
                 ...parsed,
-                stats: { ...DEFAULT_SAVE.stats, ...(parsed.stats || {}) },
+                stats: {
+                    ...DEFAULT_SAVE.stats,
+                    ...(parsed.stats || {}),
+                    claimedRankRewards: Array.isArray(parsed.stats?.claimedRankRewards)
+                        ? parsed.stats.claimedRankRewards
+                        : []
+                },
                 ownedCars: Array.isArray(parsed.ownedCars) && parsed.ownedCars.includes('compact') 
                     ? parsed.ownedCars 
                     : ['compact']
@@ -122,6 +130,37 @@ class StorageManager {
         return false;
     }
 
+    getTotalRP() {
+        return this.data.stats.totalRP || 0;
+    }
+
+    addRP(amount) {
+        if (amount > 0) {
+            this.data.stats.totalRP = (this.data.stats.totalRP || 0) + Math.floor(amount);
+            this.save();
+        }
+        return this.data.stats.totalRP;
+    }
+
+    isRankRewardClaimed(tierId) {
+        return (this.data.stats.claimedRankRewards || []).includes(tierId);
+    }
+
+    claimRankReward(tierId, cashAmount) {
+        if (!this.data.stats.claimedRankRewards) {
+            this.data.stats.claimedRankRewards = [];
+        }
+        if (!this.data.stats.claimedRankRewards.includes(tierId)) {
+            this.data.stats.claimedRankRewards.push(tierId);
+            if (cashAmount > 0) {
+                this.addCash(cashAmount);
+            }
+            this.save();
+            return true;
+        }
+        return false;
+    }
+
     isSoundEnabled() {
         return this.data.soundEnabled !== false;
     }
@@ -131,10 +170,13 @@ class StorageManager {
         this.save();
     }
 
-    recordRunEnd(smashed, copsWrecked) {
+    recordRunEnd(smashed, copsWrecked, rpEarned = 0) {
         this.data.stats.totalRuns++;
         this.data.stats.totalSmashed += (smashed || 0);
         this.data.stats.totalCopsWrecked += (copsWrecked || 0);
+        if (rpEarned > 0) {
+            this.data.stats.totalRP = (this.data.stats.totalRP || 0) + Math.floor(rpEarned);
+        }
         this.save();
     }
 }

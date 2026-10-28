@@ -433,6 +433,73 @@ class AudioManager {
         } catch (e) {}
     }
 
+    // Gacha Hyperspace Warp Riser
+    playGachaWarp() {
+        if (!this.ctx || !this.enabled) return;
+        try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(110, now);
+            osc.frequency.exponentialRampToValueAtTime(1500, now + 2.0);
+
+            gain.gain.setValueAtTime(0.04, now);
+            gain.gain.linearRampToValueAtTime(0.35, now + 1.8);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 2.1);
+
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+            osc.start(now);
+            osc.stop(now + 2.15);
+        } catch (e) {}
+    }
+
+    // Gacha Capsule Impact Burst
+    playGachaBurst() {
+        if (!this.ctx || !this.enabled) return;
+        try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(160, now);
+            osc.frequency.exponentialRampToValueAtTime(32, now + 0.65);
+
+            gain.gain.setValueAtTime(0.55, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.7);
+
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+            osc.start(now);
+            osc.stop(now + 0.72);
+        } catch (e) {}
+    }
+
+    // Rank Promotion Fanfare
+    playRankUp() {
+        if (!this.ctx || !this.enabled) return;
+        try {
+            const now = this.ctx.currentTime;
+            const chords = [523.25, 659.25, 783.99, 1046.50];
+            chords.forEach((freq, idx) => {
+                const noteTime = now + idx * 0.1;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, noteTime);
+
+                gain.gain.setValueAtTime(0.28, noteTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.55);
+
+                osc.connect(gain);
+                gain.connect(this.masterGain);
+                osc.start(noteTime);
+                osc.stop(noteTime + 0.58);
+            });
+        } catch (e) {}
+    }
+
     // Gacha card reveal fanfare based on rarity
     playGachaReveal(rarity = 'common') {
         if (!this.ctx || !this.enabled) return;

@@ -140,7 +140,8 @@ export class PlayerCar {
 
         // Off-road terrain check
         const isOffroad = map ? !map.isOnRoad(this.x, this.y) : false;
-        const terrainFriction = isOffroad ? 0.72 : (map ? map.surfaceTraction : 1.0);
+        const baseTraction = map ? (map.getTractionAt ? map.getTractionAt(this.x, this.y) : map.surfaceTraction) : 1.0;
+        const terrainFriction = isOffroad ? 0.72 : baseTraction;
 
         // If recovery system is actively reversing, bypass normal drive controls
         if (recoveryManager && recoveryManager.isActive()) {

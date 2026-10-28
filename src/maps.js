@@ -1,4 +1,4 @@
-// src/maps.js - Three distinct maps: Green Suburbs, River District, Neon Industrial Zone
+// src/maps.js - Four distinct maps: Green Suburbs (Spring), River District (Summer), Neon Industrial Zone (Night), and Tri-Season Megalopolis (Combined)
 // Features water & bridge collision, zero houses in roads, tiered destructibles (>= 57% destructibility)
 import { MAP_CONFIGS } from './config.js';
 
@@ -28,33 +28,178 @@ export class GameMap {
         this.buildSpatialGrid();
     }
 
+    getTractionAt(x, y) {
+        if (this.theme === 'megalopolis') {
+            if (y >= 2100) return 0.92; // South Neon Industrial
+            if (x >= 2100) return 0.98; // North-East Summer River District
+            return 0.95; // North-West Spring Green Suburbs
+        }
+        return this.surfaceTraction;
+    }
+
     generateRoads() {
         this.roads = [];
 
-        // Main North-South Central Highway
-        this.addRoad(2100, 200, 2100, 4000, 160);
+        if (this.index === 0) {
+            // ==========================================
+            // MAP 1: GREEN SUBURBS (SPRING)
+            // Distinct Layout: Central Roundabout, Suburban Cul-de-Sacs, Curved Avenues
+            // ==========================================
+            // Central Plaza Roundabout (approximated with connected octagonal segments)
+            const rcX = 2100, rcY = 2100, rR = 280;
+            const sides = 8;
+            for (let i = 0; i < sides; i++) {
+                const a1 = (i / sides) * Math.PI * 2;
+                const a2 = ((i + 1) / sides) * Math.PI * 2;
+                this.addRoad(
+                    rcX + Math.cos(a1) * rR, rcY + Math.sin(a1) * rR,
+                    rcX + Math.cos(a2) * rR, rcY + Math.sin(a2) * rR,
+                    150
+                );
+            }
 
-        // East-West Major Crossway
-        this.addRoad(300, 2100, 3900, 2100, 160);
+            // 4 Radial Avenues exiting Roundabout
+            this.addRoad(2100, 200, 2100, 1820, 160);  // North Avenue
+            this.addRoad(2100, 2380, 2100, 4000, 160); // South Avenue
+            this.addRoad(200, 2100, 1820, 2100, 160);  // West Parkway
+            this.addRoad(2380, 2100, 4000, 2100, 160); // East Boulevard
 
-        // North & South Outer Loops
-        this.addRoad(700, 700, 3500, 700, 140);
-        this.addRoad(700, 3400, 3500, 3400, 140);
+            // Suburban Perimeter Outer Loops & Courts
+            this.addRoad(700, 700, 3500, 700, 140);
+            this.addRoad(700, 3400, 3500, 3400, 140);
+            this.addRoad(700, 700, 700, 3400, 140);
+            this.addRoad(3500, 700, 3500, 3400, 140);
 
-        // West & East Boundary Avenues
-        this.addRoad(700, 700, 700, 3400, 140);
-        this.addRoad(3500, 700, 3500, 3400, 140);
+            // Winding Cul-de-sac Loops in Neighborhoods
+            this.addRoad(700, 1400, 1400, 1400, 120);
+            this.addRoad(1400, 1400, 1400, 700, 120);
+            this.addRoad(2800, 700, 2800, 1400, 120);
+            this.addRoad(2800, 1400, 3500, 1400, 120);
 
-        // Diagonal connector bypasses (creates high-speed drift curves)
-        this.addRoad(700, 2100, 1400, 1400, 120);
-        this.addRoad(1400, 1400, 2100, 1400, 120);
-        this.addRoad(2100, 1400, 2800, 1400, 120);
-        this.addRoad(2800, 1400, 3500, 2100, 120);
+            // Diagonal bypasses
+            this.addRoad(700, 2100, 1035, 1765, 130);
+            this.addRoad(1035, 1765, 1400, 1400, 130);
+            this.addRoad(2800, 1400, 3165, 1765, 130);
+            this.addRoad(3165, 1765, 3500, 2100, 130);
 
-        this.addRoad(700, 2100, 1400, 2800, 120);
-        this.addRoad(1400, 2800, 2100, 2800, 120);
-        this.addRoad(2100, 2800, 2800, 2800, 120);
-        this.addRoad(2800, 2800, 3500, 2100, 120);
+            this.addRoad(700, 2100, 1400, 2800, 120);
+            this.addRoad(1400, 2800, 2100, 2800, 120);
+            this.addRoad(2100, 2800, 2800, 2800, 120);
+            this.addRoad(2800, 2800, 3500, 2100, 120);
+
+        } else if (this.index === 1) {
+            // ==========================================
+            // MAP 2: RIVER DISTRICT (SUMMER)
+            // Distinct Layout: Canal Network, Twin Shore Boulevards, Marina Loops
+            // ==========================================
+            // North Waterfront Parkway
+            this.addRoad(300, 1100, 3900, 1100, 160);
+
+            // South Dockland Avenue
+            this.addRoad(300, 2500, 3900, 2500, 160);
+
+            // Central River Crossing Arterial Highway
+            this.addRoad(2100, 200, 2100, 4000, 160);
+
+            // East & West Pier Corridors
+            this.addRoad(700, 400, 700, 3800, 150);
+            this.addRoad(3500, 400, 3500, 3800, 150);
+
+            // Outer Port Perimeter
+            this.addRoad(700, 400, 3500, 400, 140);
+            this.addRoad(700, 3800, 3500, 3800, 140);
+
+            // High-Speed Marina Coastal Sweepers & Bridge Connectors
+            this.addRoad(700, 1100, 1035, 1765, 140);
+            this.addRoad(1035, 1765, 1400, 2100, 140);
+            this.addRoad(1400, 2100, 2100, 2100, 140);
+            this.addRoad(2100, 2100, 2800, 2100, 140);
+            this.addRoad(2800, 2100, 3165, 1765, 140);
+            this.addRoad(3165, 1765, 3500, 1100, 140);
+
+            // South Dock Shipping Loop
+            this.addRoad(700, 2500, 1400, 3100, 130);
+            this.addRoad(1400, 3100, 2800, 3100, 130);
+            this.addRoad(2800, 3100, 3500, 2500, 130);
+
+        } else if (this.index === 2) {
+            // ==========================================
+            // MAP 3: NEON INDUSTRIAL ZONE (NEON NIGHT)
+            // Distinct Layout: Super-Wide 8-Lane Freight Expressway, Factory Chicanes, Rail Depot
+            // ==========================================
+            // 8-Lane Central Freight Drag Expressway (180px wide)
+            this.addRoad(2100, 200, 2100, 4000, 180);
+
+            // Major Trans-Industrial Arterial (180px wide)
+            this.addRoad(200, 2100, 4000, 2100, 180);
+
+            // Perimeter Freight Railway Corridors (Wide, high-traction straights)
+            this.addRoad(550, 550, 3650, 550, 150);
+            this.addRoad(550, 3650, 3650, 3650, 150);
+            this.addRoad(550, 550, 550, 3650, 150);
+            this.addRoad(3650, 550, 3650, 3650, 150);
+
+            // Tight Warehouse Chicanes & Cargo Alleys (Technical 90-degree drift zones)
+            this.addRoad(550, 1300, 1300, 1300, 130);
+            this.addRoad(1300, 1300, 1300, 2100, 130);
+            this.addRoad(2900, 2100, 2900, 1300, 130);
+            this.addRoad(2900, 1300, 3650, 1300, 130);
+
+            this.addRoad(550, 2900, 1300, 2900, 130);
+            this.addRoad(1300, 2900, 1300, 2100, 130);
+            this.addRoad(2900, 2100, 2900, 2900, 130);
+            this.addRoad(2900, 2900, 3650, 2900, 130);
+
+            // Bridge Approaches
+            this.addRoad(700, 2100, 1035, 1765, 130);
+            this.addRoad(1035, 1765, 1400, 1400, 130);
+            this.addRoad(2800, 1400, 3165, 1765, 130);
+            this.addRoad(3165, 1765, 3500, 2100, 130);
+
+        } else {
+            // ==========================================
+            // MAP 4: TRI-SEASON MEGALOPOLIS (COMBINES SPRING, SUMMER & NEON NIGHT!)
+            // Distinct Layout: Sector 1 (NW: Spring Suburbs), Sector 2 (NE: Summer River), Sector 3 (South: Neon Industrial)
+            // Connected via the Grand Inter-Seasonal Tri-Bridge Interchange
+            // ==========================================
+            // Grand Central Inter-Seasonal North-South Highway (links North Suburbs/River to South Neon City)
+            this.addRoad(2100, 200, 2100, 4000, 170);
+
+            // East-West Trans-Regional Parkway
+            this.addRoad(300, 2100, 3900, 2100, 170);
+
+            // Sector 1: Spring Suburbs Northern Avenue (NW)
+            this.addRoad(600, 800, 2100, 800, 140);
+            this.addRoad(600, 800, 600, 2100, 140);
+            this.addRoad(600, 1450, 1450, 1450, 130);
+            this.addRoad(1450, 1450, 1450, 800, 130);
+
+            // Sector 2: Summer River Coastal Boulevard (NE)
+            this.addRoad(2100, 800, 3600, 800, 140);
+            this.addRoad(3600, 800, 3600, 2100, 140);
+            this.addRoad(2750, 800, 2750, 1450, 130);
+            this.addRoad(2750, 1450, 3600, 1450, 130);
+
+            // Sector 3: Neon Industrial South Beltway (South)
+            this.addRoad(600, 3400, 3600, 3400, 160);
+            this.addRoad(600, 2100, 600, 3400, 150);
+            this.addRoad(3600, 2100, 3600, 3400, 150);
+
+            // Industrial South Chicanes
+            this.addRoad(1350, 2100, 1350, 2750, 130);
+            this.addRoad(1350, 2750, 2100, 2750, 130);
+            this.addRoad(2100, 2750, 2850, 2750, 130);
+            this.addRoad(2850, 2750, 2850, 2100, 130);
+
+            // Trans-Sector Inter-Regional Connectors (Diagonal Superhighways)
+            this.addRoad(600, 2100, 1035, 1765, 140);
+            this.addRoad(1035, 1765, 1450, 1450, 140);
+            this.addRoad(2750, 1450, 3165, 1765, 140);
+            this.addRoad(3165, 1765, 3600, 2100, 140);
+
+            this.addRoad(600, 2100, 1350, 2750, 140);
+            this.addRoad(2850, 2750, 3600, 2100, 140);
+        }
     }
 
     addRoad(x1, y1, x2, y2, width = 140) {
@@ -71,237 +216,111 @@ export class GameMap {
         this.waterBodies = [];
         this.bridges = [];
 
-        if (this.theme === 'river') {
-            // River District: Broad winding river running across the map
-            this.waterBodies.push({
-                type: 'river',
-                width: 140,
-                halfW: 70,
-                segments: [
-                    { x1: 200, y1: 1750, x2: 1100, y2: 1780 },
-                    { x1: 1100, y1: 1780, x2: 2100, y2: 1800 },
-                    { x1: 2100, y1: 1800, x2: 3100, y2: 1770 },
-                    { x1: 3100, y1: 1770, x2: 4000, y2: 1740 }
-                ]
-            });
+        // River channel segments across the mid-latitude of the maps
+        let channelType = 'river';
+        let channelWidth = 140;
+        let bridgeType = 'stone';
 
-            // ALL 5 Bridges across the River District:
-            // Bridge 1: West Avenue Bridge at x = 700
-            this.bridges.push({
-                id: 'bridge_1',
-                x: 700,
-                y: 1765,
-                w: 180,
-                h: 240,
-                halfW: 90,
-                halfH: 120,
-                angle: 0,
-                type: 'stone'
-            });
-
-            // Bridge 2: West Diagonal Connector Bridge at x = 1035 (FIXES "YOU GOT WET" BUG)
-            this.bridges.push({
-                id: 'bridge_2',
-                x: 1035,
-                y: 1765,
-                w: 180,
-                h: 260,
-                halfW: 90,
-                halfH: 130,
-                angle: -Math.PI / 4,
-                type: 'stone'
-            });
-
-            // Bridge 3: Central Highway Bridge at x = 2100
-            this.bridges.push({
-                id: 'bridge_3',
-                x: 2100,
-                y: 1800,
-                w: 200,
-                h: 260,
-                halfW: 100,
-                halfH: 130,
-                angle: 0,
-                type: 'suspension'
-            });
-
-            // Bridge 4: East Diagonal Connector Bridge at x = 3165 (FIXES "YOU GOT WET" BUG)
-            this.bridges.push({
-                id: 'bridge_4',
-                x: 3165,
-                y: 1765,
-                w: 180,
-                h: 260,
-                halfW: 90,
-                halfH: 130,
-                angle: Math.PI / 4,
-                type: 'stone'
-            });
-
-            // Bridge 5: East Avenue Bridge at x = 3500
-            this.bridges.push({
-                id: 'bridge_5',
-                x: 3500,
-                y: 1755,
-                w: 180,
-                h: 240,
-                halfW: 90,
-                halfH: 120,
-                angle: 0,
-                type: 'stone'
-            });
-        } else if (this.theme === 'suburbs') {
-            // Green Suburbs: Scenic creek with 5 wooden bridges
-            this.waterBodies.push({
-                type: 'creek',
-                width: 100,
-                halfW: 50,
-                segments: [
-                    { x1: 200, y1: 1750, x2: 1200, y2: 1780 },
-                    { x1: 1200, y1: 1780, x2: 2100, y2: 1800 },
-                    { x1: 2100, y1: 1800, x2: 3200, y2: 1760 },
-                    { x1: 3200, y1: 1760, x2: 4000, y2: 1720 }
-                ]
-            });
-
-            this.bridges.push({
-                id: 'bridge_1',
-                x: 700,
-                y: 1765,
-                w: 180,
-                h: 220,
-                halfW: 90,
-                halfH: 110,
-                angle: 0,
-                type: 'wooden'
-            });
-
-            this.bridges.push({
-                id: 'bridge_2',
-                x: 1035,
-                y: 1765,
-                w: 180,
-                h: 240,
-                halfW: 90,
-                halfH: 120,
-                angle: -Math.PI / 4,
-                type: 'wooden'
-            });
-
-            this.bridges.push({
-                id: 'bridge_3',
-                x: 2100,
-                y: 1800,
-                w: 200,
-                h: 240,
-                halfW: 100,
-                halfH: 120,
-                angle: 0,
-                type: 'wooden'
-            });
-
-            this.bridges.push({
-                id: 'bridge_4',
-                x: 3165,
-                y: 1765,
-                w: 180,
-                h: 240,
-                halfW: 90,
-                halfH: 120,
-                angle: Math.PI / 4,
-                type: 'wooden'
-            });
-
-            this.bridges.push({
-                id: 'bridge_5',
-                x: 3500,
-                y: 1750,
-                w: 180,
-                h: 220,
-                halfW: 90,
-                halfH: 110,
-                angle: 0,
-                type: 'wooden'
-            });
-        } else if (this.theme === 'industrial') {
-            // Neon Industrial: Chemical canal with 5 heavy steel bridges
-            this.waterBodies.push({
-                type: 'canal',
-                width: 110,
-                halfW: 55,
-                segments: [
-                    { x1: 200, y1: 1750, x2: 1300, y2: 1770 },
-                    { x1: 1300, y1: 1770, x2: 2100, y2: 1800 },
-                    { x1: 2100, y1: 1800, x2: 2900, y2: 1780 },
-                    { x1: 2900, y1: 1780, x2: 4000, y2: 1730 }
-                ]
-            });
-
-            this.bridges.push({
-                id: 'bridge_1',
-                x: 700,
-                y: 1760,
-                w: 180,
-                h: 220,
-                halfW: 90,
-                halfH: 110,
-                angle: 0,
-                type: 'steel'
-            });
-
-            this.bridges.push({
-                id: 'bridge_2',
-                x: 1035,
-                y: 1765,
-                w: 180,
-                h: 240,
-                halfW: 90,
-                halfH: 120,
-                angle: -Math.PI / 4,
-                type: 'steel'
-            });
-
-            this.bridges.push({
-                id: 'bridge_3',
-                x: 2100,
-                y: 1800,
-                w: 200,
-                h: 240,
-                halfW: 100,
-                halfH: 120,
-                angle: 0,
-                type: 'steel'
-            });
-
-            this.bridges.push({
-                id: 'bridge_4',
-                x: 3165,
-                y: 1765,
-                w: 180,
-                h: 240,
-                halfW: 90,
-                halfH: 120,
-                angle: Math.PI / 4,
-                type: 'steel'
-            });
-
-            this.bridges.push({
-                id: 'bridge_5',
-                x: 3500,
-                y: 1740,
-                w: 180,
-                h: 220,
-                halfW: 90,
-                halfH: 110,
-                angle: 0,
-                type: 'steel'
-            });
+        if (this.index === 0) {
+            channelType = 'creek';
+            channelWidth = 110;
+            bridgeType = 'wooden';
+        } else if (this.index === 1) {
+            channelType = 'river';
+            channelWidth = 150;
+            bridgeType = 'stone';
+        } else if (this.index === 2) {
+            channelType = 'canal';
+            channelWidth = 120;
+            bridgeType = 'steel';
+        } else {
+            // Megalopolis (Tri-Season)
+            channelType = 'mega_channel';
+            channelWidth = 140;
+            bridgeType = 'composite';
         }
+
+        this.waterBodies.push({
+            type: channelType,
+            width: channelWidth,
+            halfW: channelWidth / 2,
+            segments: [
+                { x1: 200, y1: 1750, x2: 1100, y2: 1780 },
+                { x1: 1100, y1: 1780, x2: 2100, y2: 1800 },
+                { x1: 2100, y1: 1800, x2: 3100, y2: 1770 },
+                { x1: 3100, y1: 1770, x2: 4000, y2: 1740 }
+            ]
+        });
+
+        // ALL FIVE BRIDGES explicitly placed and drivable on all maps:
+        // Bridge 1: West Avenue Bridge at x = 700 (or x = 600 on megalopolis)
+        const b1X = (this.index === 3) ? 600 : 700;
+        this.bridges.push({
+            id: 'bridge_1',
+            x: b1X,
+            y: 1765,
+            w: 180,
+            h: 240,
+            halfW: 90,
+            halfH: 120,
+            angle: 0,
+            type: bridgeType
+        });
+
+        // Bridge 2: West Diagonal Connector Bridge at x = 1035 (FIXED: Never triggers wet message)
+        this.bridges.push({
+            id: 'bridge_2',
+            x: 1035,
+            y: 1765,
+            w: 180,
+            h: 260,
+            halfW: 90,
+            halfH: 130,
+            angle: -Math.PI / 4,
+            type: bridgeType
+        });
+
+        // Bridge 3: Central Highway Bridge at x = 2100
+        this.bridges.push({
+            id: 'bridge_3',
+            x: 2100,
+            y: 1800,
+            w: 220,
+            h: 260,
+            halfW: 110,
+            halfH: 130,
+            angle: 0,
+            type: (this.index === 1 || this.index === 3) ? 'suspension' : bridgeType
+        });
+
+        // Bridge 4: East Diagonal Connector Bridge at x = 3165 (FIXED: Never triggers wet message)
+        this.bridges.push({
+            id: 'bridge_4',
+            x: 3165,
+            y: 1765,
+            w: 180,
+            h: 260,
+            halfW: 90,
+            halfH: 130,
+            angle: Math.PI / 4,
+            type: bridgeType
+        });
+
+        // Bridge 5: East Avenue Bridge at x = 3500 (or x = 3600 on megalopolis)
+        const b5X = (this.index === 3) ? 3600 : 3500;
+        this.bridges.push({
+            id: 'bridge_5',
+            x: b5X,
+            y: 1755,
+            w: 180,
+            h: 240,
+            halfW: 90,
+            halfH: 120,
+            angle: 0,
+            type: bridgeType
+        });
     }
 
-    /**
-     * Checks if a point is on a solid drivable bridge with full rotation and safety margin
-     */
     isOnBridge(x, y, margin = 20) {
         for (let i = 0; i < this.bridges.length; i++) {
             const b = this.bridges[i];
@@ -325,11 +344,7 @@ export class GameMap {
         return false;
     }
 
-    /**
-     * Checks if a point is in hazardous deep water (bridges & road crossings are strictly excluded)
-     */
     isInWater(x, y) {
-        // Bridges and designated road approaches are safe drivable pathways
         if (this.isOnBridge(x, y, 20) || this.isOnRoad(x, y, 6)) {
             return false;
         }
@@ -358,9 +373,6 @@ export class GameMap {
         return false;
     }
 
-    /**
-     * Strict clearance check: ensures no building or solid obstacle touches any road lane or shoulder
-     */
     isClearOfRoads(x, y, requiredClearance = 80) {
         for (let i = 0; i < this.roads.length; i++) {
             const r = this.roads[i];
@@ -388,55 +400,54 @@ export class GameMap {
     generateBuildings() {
         this.buildings = [];
 
-        // Carefully selected plots completely offset from all road lanes and intersections
-        // Each spot is explicitly verified to keep driving routes 100% unobstructed.
-        const candidateSpots = [
-            // North-West Quadrant
-            { x: 1200, y: 1050, w: 150, h: 120, type: 'house' },
-            { x: 1600, y: 1050, w: 140, h: 110, type: 'house' },
-            { x: 1050, y: 450,  w: 160, h: 110, type: 'house' },
-            { x: 1550, y: 450,  w: 150, h: 110, type: 'house' },
+        // Grid candidate spots across map quadrants (dynamically checked against all road segments)
+        const spots = [];
+        const xCoords = [450, 1050, 1600, 2600, 3150, 3750];
+        const yCoords = [450, 1050, 1400, 2750, 3100, 3750];
 
-            // North-East Quadrant
-            { x: 2600, y: 1050, w: 140, h: 110, type: 'house' },
-            { x: 3000, y: 1050, w: 150, h: 120, type: 'house' },
-            { x: 2650, y: 450,  w: 150, h: 110, type: 'house' },
-            { x: 3150, y: 450,  w: 160, h: 110, type: 'house' },
+        for (const sx of xCoords) {
+            for (const sy of yCoords) {
+                spots.push({
+                    x: sx,
+                    y: sy,
+                    w: (sx % 200 === 0) ? 160 : 140,
+                    h: (sy % 200 === 0) ? 120 : 110
+                });
+            }
+        }
 
-            // South-West Quadrant
-            { x: 1200, y: 3100, w: 150, h: 120, type: 'house' },
-            { x: 1600, y: 3100, w: 140, h: 110, type: 'house' },
-            { x: 1050, y: 3750, w: 160, h: 110, type: 'house' },
-            { x: 1550, y: 3750, w: 150, h: 110, type: 'house' },
-
-            // South-East Quadrant
-            { x: 2600, y: 3100, w: 140, h: 110, type: 'house' },
-            { x: 3000, y: 3100, w: 150, h: 120, type: 'house' },
-            { x: 2650, y: 3750, w: 150, h: 110, type: 'house' },
-            { x: 3150, y: 3750, w: 160, h: 110, type: 'house' },
-
-            // Inner Core Buffer Plots (Safe clearance from diagonals)
-            { x: 1750, y: 1750, w: 120, h: 100, type: 'office' },
-            { x: 2450, y: 1750, w: 120, h: 100, type: 'office' },
-            { x: 1750, y: 2450, w: 120, h: 100, type: 'office' },
-            { x: 2450, y: 2450, w: 120, h: 100, type: 'office' }
-        ];
+        // Additional safe interior plot points
+        spots.push(
+            { x: 1750, y: 1750, w: 120, h: 100 },
+            { x: 2450, y: 1750, w: 120, h: 100 },
+            { x: 1750, y: 2450, w: 120, h: 100 },
+            { x: 2450, y: 2450, w: 120, h: 100 }
+        );
 
         let bldId = 0;
-        for (const spot of candidateSpots) {
+        for (const spot of spots) {
             const halfW = spot.w / 2;
             const halfH = spot.h / 2;
             const requiredClearance = Math.max(halfW, halfH) + 30;
 
-            // Only add if guaranteed 100% off-road
-            if (this.isClearOfRoads(spot.x, spot.y, requiredClearance)) {
-                let themeType = spot.type;
-                if (this.theme === 'industrial') {
-                    themeType = (bldId % 2 === 0) ? 'warehouse' : 'factory';
-                } else if (this.theme === 'river') {
+            if (this.isClearOfRoads(spot.x, spot.y, requiredClearance) && !this.isInWater(spot.x, spot.y)) {
+                let themeType = 'house';
+
+                if (this.index === 0) {
+                    themeType = (bldId % 2 === 0) ? 'suburban_villa' : 'suburban_house';
+                } else if (this.index === 1) {
                     themeType = (bldId % 2 === 0) ? 'dockhouse' : 'boathouse';
+                } else if (this.index === 2) {
+                    themeType = (bldId % 2 === 0) ? 'warehouse' : 'factory';
                 } else {
-                    themeType = (bldId % 3 === 0) ? 'suburban_villa' : 'suburban_house';
+                    // Megalopolis: Determined by sector
+                    if (spot.y >= 2100) {
+                        themeType = (bldId % 2 === 0) ? 'warehouse' : 'factory'; // South: Neon
+                    } else if (spot.x >= 2100) {
+                        themeType = (bldId % 2 === 0) ? 'dockhouse' : 'boathouse'; // NE: Summer River
+                    } else {
+                        themeType = (bldId % 2 === 0) ? 'suburban_villa' : 'suburban_house'; // NW: Spring Suburbs
+                    }
                 }
 
                 this.buildings.push({
@@ -455,27 +466,21 @@ export class GameMap {
 
     generatePropsAndDestructibles() {
         this.destructibles = [];
-        this.solidProps = []; // Indestructible solid props (counted for >= 57% ratio)
+        this.solidProps = [];
         this.trees = [];
 
         let destId = 0;
         let solidId = 0;
 
-        /**
-         * Add a destructible object with tiered breaking requirements and balanced coin rewards:
-         * Tier 1 (Light): reqSpeed: 30, cash: 8 (5-10), score: 80
-         * Tier 2 (Medium): reqSpeed: 130, cash: 16 (10-20), score: 180
-         * Tier 3 (Heavy): reqSpeed: 230, cash: 28 (20-35), score: 320
-         */
         const addDestructible = (type, x, y, tier = 'medium') => {
             if (!this.isClearOfRoads(x, y, 16)) return;
             if (this.isInWater(x, y)) return;
 
             let w = 24, h = 24, radius = 16;
             let reqSpeed = 130;
-            let cash = 15;
-            let score = 150;
-            let hp = 20;
+            let cash = 16;
+            let score = 180;
+            let hp = 25;
 
             if (tier === 'light') {
                 reqSpeed = 30;
@@ -527,7 +532,6 @@ export class GameMap {
         };
 
         const addSolidProp = (type, x, y) => {
-            // Strict road clearance: NEVER place any solid prop within 90px of any road
             if (!this.isClearOfRoads(x, y, 90)) return;
             if (this.isInWater(x, y)) return;
 
@@ -544,7 +548,7 @@ export class GameMap {
             });
         };
 
-        // 1. Roadside Props: 100% DESTRUCTIBLE breakable objects along road shoulders (Zero solid props)
+        // 1. Roadside Breakable Props: Along road shoulders
         for (let i = 0; i < this.roads.length; i++) {
             const r = this.roads[i];
             const cos = Math.cos(r.angle);
@@ -561,7 +565,14 @@ export class GameMap {
                 const cycle = stepIndex % 5;
                 stepIndex++;
 
-                if (this.theme === 'suburbs') {
+                let currentTheme = this.theme;
+                if (this.theme === 'megalopolis') {
+                    if (py >= 2100) currentTheme = 'industrial';
+                    else if (px >= 2100) currentTheme = 'river';
+                    else currentTheme = 'suburbs';
+                }
+
+                if (currentTheme === 'suburbs') {
                     if (cycle === 0) {
                         addDestructible('fence', px + normalX * offset, py + normalY * offset, 'medium');
                         addDestructible('bush', px - normalX * offset, py - normalY * offset, 'light');
@@ -571,10 +582,10 @@ export class GameMap {
                         addDestructible('hydrant', px - normalX * (offset + 8), py - normalY * (offset + 8), 'medium');
                     } else if (cycle === 3) {
                         addDestructible('bush', px + normalX * offset, py + normalY * offset, 'light');
-                    } else { // cycle === 4
+                    } else {
                         addDestructible('fence', px - normalX * offset, py - normalY * offset, 'medium');
                     }
-                } else if (this.theme === 'river') {
+                } else if (currentTheme === 'river') {
                     if (cycle === 0) {
                         addDestructible('fence', px + normalX * offset, py + normalY * offset, 'medium');
                         addDestructible('crate', px - normalX * offset, py - normalY * offset, 'light');
@@ -584,10 +595,11 @@ export class GameMap {
                         addDestructible('crate', px - normalX * (offset + 10), py - normalY * (offset + 10), 'light');
                     } else if (cycle === 3) {
                         addDestructible('barrel', px + normalX * (offset + 10), py + normalY * (offset + 10), 'medium');
-                    } else { // cycle === 4
+                    } else {
                         addDestructible('fence', px - normalX * (offset + 10), py - normalY * (offset + 10), 'medium');
                     }
-                } else { // industrial
+                } else {
+                    // industrial
                     if (cycle === 0) {
                         addDestructible('barrier', px + normalX * offset, py + normalY * offset, 'heavy');
                         addDestructible('barrel', px - normalX * offset, py - normalY * offset, 'medium');
@@ -597,54 +609,28 @@ export class GameMap {
                         addDestructible('barrier', px - normalX * (offset + 12), py - normalY * (offset + 12), 'heavy');
                     } else if (cycle === 3) {
                         addDestructible('barrel', px + normalX * (offset + 12), py + normalY * (offset + 12), 'medium');
-                    } else { // cycle === 4
+                    } else {
                         addDestructible('container_small', px - normalX * (offset + 12), py - normalY * (offset + 12), 'heavy');
                     }
                 }
             }
         }
 
-        // 2. Intersection Props: 100% DESTRUCTIBLE signs, streetlights, barrels (Zero solid props)
-        const intersections = [
-            { x: 2100, y: 700 }, { x: 2100, y: 3400 },
-            { x: 700, y: 2100 }, { x: 3500, y: 2100 },
-            { x: 1400, y: 1400 }, { x: 2800, y: 1400 },
-            { x: 1400, y: 2800 }, { x: 2800, y: 2800 },
-            { x: 2100, y: 1400 }, { x: 2100, y: 2800 },
-            { x: 1400, y: 2100 }, { x: 2800, y: 2100 }
-        ];
-
-        for (const pt of intersections) {
-            addDestructible('sign', pt.x + 95, pt.y + 95, 'light');
-            addDestructible('sign', pt.x - 95, pt.y - 95, 'light');
-
-            if (this.theme === 'suburbs') {
-                addDestructible('hydrant', pt.x + 95, pt.y - 95, 'medium');
-                addDestructible('streetlight', pt.x - 95, pt.y + 95, 'medium');
-            } else if (this.theme === 'river') {
-                addDestructible('barrel', pt.x + 95, pt.y - 95, 'medium');
-                addDestructible('crate', pt.x - 95, pt.y + 95, 'light');
-            } else {
-                addDestructible('barrier', pt.x + 95, pt.y - 95, 'heavy');
-                addDestructible('barrel', pt.x - 95, pt.y + 95, 'medium');
-            }
-        }
-
-        // 3. Cluster Props Around Buildings (Houses and buildings kept intact)
+        // 2. Cluster Props Around Buildings
         for (const b of this.buildings) {
             addDestructible('crate', b.x - b.halfW - 28, b.y, 'light');
             addDestructible('crate', b.x + b.halfW + 28, b.y, 'light');
 
-            if (this.theme === 'suburbs') {
+            if (b.type.includes('suburban') || b.type === 'house') {
                 addDestructible('bush', b.x, b.y + b.halfH + 24, 'light');
-            } else if (this.theme === 'river') {
+            } else if (b.type.includes('dock') || b.type.includes('boat')) {
                 addDestructible('barrel', b.x, b.y + b.halfH + 28, 'medium');
             } else {
                 addDestructible('oil_tank', b.x, b.y + b.halfH + 32, 'heavy');
             }
         }
 
-        // 4. Deep Off-Road Park Plinths (Exclusively in off-road interior zones strictly >= 95px clear of all roads)
+        // 3. Deep Off-Road Park Plinths (strictly >= 95px clear of all roads)
         for (let x = 200; x < this.width - 200; x += 190) {
             for (let y = 200; y < this.height - 200; y += 190) {
                 if (this.isClearOfRoads(x, y, 95) && !this.isInWater(x, y)) {
@@ -653,26 +639,30 @@ export class GameMap {
             }
         }
 
-        // 4. Scenery Trees (Exclusively in off-road, dry zones)
+        // 4. Scenery Trees (Exclusively off-road, dry zones)
         const treeCount = 240;
         for (let i = 0; i < treeCount; i++) {
             const tx = Math.random() * (this.width - 240) + 120;
             const ty = Math.random() * (this.height - 240) + 120;
 
             if (this.isClearOfRoads(tx, ty, 30) && !this.isInWater(tx, ty)) {
+                let treeTheme = this.theme;
+                if (this.theme === 'megalopolis') {
+                    if (ty >= 2100) treeTheme = 'industrial';
+                    else if (tx >= 2100) treeTheme = 'river';
+                    else treeTheme = 'suburbs';
+                }
+
                 this.trees.push({
                     x: tx,
                     y: ty,
                     size: Math.random() * 22 + 30,
-                    type: this.theme
+                    type: treeTheme
                 });
             }
         }
     }
 
-    /**
-     * Percentage of eligible objects that are destructible
-     */
     getDestructibleRatio() {
         const total = this.destructibles.length + this.solidProps.length;
         if (total === 0) return 1.0;
@@ -713,9 +703,6 @@ export class GameMap {
         return nearby;
     }
 
-    /**
-     * Find nearest safe road point for vehicle recovery when submerged
-     */
     getNearestRoadPoint(x, y) {
         let nearestDist = Infinity;
         let nearestX = 2100;
@@ -731,7 +718,6 @@ export class GameMap {
             const px = r.x1 + t * dx;
             const py = r.y1 + t * dy;
 
-            // Make sure the candidate recovery point is not submerged
             if (!this.isInWater(px, py)) {
                 const d = Math.hypot(x - px, y - py);
                 if (d < nearestDist) {
@@ -747,13 +733,39 @@ export class GameMap {
 
     draw(ctx, camera) {
         // 1. Base Ground
-        ctx.fillStyle = this.config.groundColor;
-        ctx.fillRect(0, 0, this.width, this.height);
+        if (this.theme === 'megalopolis') {
+            // Draw 3 distinct seasonal sectors:
+            // Sector 1: North-West (Spring Suburbs - Lush Lawn)
+            ctx.fillStyle = '#70b263';
+            ctx.fillRect(0, 0, 2100, 2100);
+
+            // Sector 2: North-East (Summer River District - Sunny Lawn)
+            ctx.fillStyle = '#6da044';
+            ctx.fillRect(2100, 0, 2100, 2100);
+
+            // Sector 3: South (Neon Industrial - Dark Asphalt Grid)
+            ctx.fillStyle = '#1e242d';
+            ctx.fillRect(0, 2100, this.width, 2100);
+
+            // Border dividers between sectors
+            ctx.save();
+            ctx.strokeStyle = 'rgba(0, 210, 255, 0.35)';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([12, 8]);
+            ctx.beginPath();
+            ctx.moveTo(2100, 0); ctx.lineTo(2100, 2100);
+            ctx.moveTo(0, 2100); ctx.lineTo(this.width, 2100);
+            ctx.stroke();
+            ctx.restore();
+        } else {
+            ctx.fillStyle = this.config.groundColor;
+            ctx.fillRect(0, 0, this.width, this.height);
+        }
 
         // Ground Accents
         this.drawGroundDetails(ctx, camera);
 
-        // 2. Water Bodies (Rivers, Creeks, Canals)
+        // 2. Water Bodies
         this.drawWater(ctx, camera);
 
         // 3. Roads
@@ -771,12 +783,11 @@ export class GameMap {
         // 7. Destructibles
         this.drawDestructibles(ctx, camera);
 
-        // 8. Environmental Trees
+        // 8. Trees
         this.drawTrees(ctx, camera);
     }
 
     drawGroundDetails(ctx, camera) {
-        // Clean subtle terrain accents without any unwanted circle objects
         ctx.save();
         ctx.fillStyle = this.config.groundAccent;
 
@@ -785,7 +796,6 @@ export class GameMap {
             for (let y = 120; y < this.height; y += step) {
                 if (!camera.isVisible(x, y, 120)) continue;
                 ctx.beginPath();
-                // Subtle square pavement / turf markings (NO circular artifacts)
                 ctx.rect(x - 20, y - 20, 40, 40);
                 ctx.fill();
             }
@@ -797,23 +807,27 @@ export class GameMap {
         ctx.save();
 
         for (const body of this.waterBodies) {
-            // High contrast, unmistakably aquatic colors (solid fluid appearance, NO lane stripes or seams)
-            let bankColor = '#5d4037';       // Natural earthen/sand bank
-            let shallowColor = '#0288d1';    // Rich aquatic blue
-            let deepColor = '#01579b';       // Deep aquatic blue channel
+            let bankColor = '#5d4037';
+            let shallowColor = '#0288d1';
+            let deepColor = '#01579b';
 
             if (this.theme === 'suburbs') {
-                bankColor = '#4e342e';       // Sandy creek bank
-                shallowColor = '#0288d1';    // Vibrant cyan aquatic blue
-                deepColor = '#01579b';       // Deep blue core channel
+                bankColor = '#4e342e';
+                shallowColor = '#0288d1';
+                deepColor = '#01579b';
             } else if (this.theme === 'river') {
-                bankColor = '#3e2723';       // Natural riverbank
-                shallowColor = '#0097a7';    // Vibrant Caribbean cyan river
-                deepColor = '#006064';       // Deep turquoise core channel
+                bankColor = '#3e2723';
+                shallowColor = '#0097a7';
+                deepColor = '#006064';
             } else if (this.theme === 'industrial') {
-                bankColor = '#212121';       // Reinforced canal embankment
-                shallowColor = '#00838f';    // Toxic bio-luminescent aqua
-                deepColor = '#004d40';       // Deep dark teal channel
+                bankColor = '#212121';
+                shallowColor = '#00838f';
+                deepColor = '#004d40';
+            } else {
+                // Megalopolis: Azure waterway with clean natural embankments
+                bankColor = '#3e2723';
+                shallowColor = '#00acc1';
+                deepColor = '#00838f';
             }
 
             for (const seg of body.segments) {
@@ -821,7 +835,6 @@ export class GameMap {
                 const midY = (seg.y1 + seg.y2) / 2;
                 if (!camera.isVisible(midX, midY, 650)) continue;
 
-                // 1. Natural shoreline / riverbank (earth/sand/canal embankment)
                 ctx.strokeStyle = bankColor;
                 ctx.lineWidth = body.width + 24;
                 ctx.lineCap = 'round';
@@ -830,7 +843,6 @@ export class GameMap {
                 ctx.lineTo(seg.x2, seg.y2);
                 ctx.stroke();
 
-                // 2. Clear vibrant aquatic water surface (clean solid color, NO lines, dashes, or stripes)
                 ctx.strokeStyle = shallowColor;
                 ctx.lineWidth = body.width;
                 ctx.lineCap = 'round';
@@ -839,7 +851,6 @@ export class GameMap {
                 ctx.lineTo(seg.x2, seg.y2);
                 ctx.stroke();
 
-                // 3. Deep water channel running through the center
                 ctx.strokeStyle = deepColor;
                 ctx.lineWidth = body.width * 0.65;
                 ctx.lineCap = 'round';
@@ -847,17 +858,9 @@ export class GameMap {
                 ctx.moveTo(seg.x1, seg.y1);
                 ctx.lineTo(seg.x2, seg.y2);
                 ctx.stroke();
-
-                // 4. Subtle smooth aquatic surface sheen (NO line dashes or stripes)
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
-                ctx.lineWidth = body.width * 0.35;
-                ctx.lineCap = 'round';
-                ctx.beginPath();
-                ctx.moveTo(seg.x1, seg.y1);
-                ctx.lineTo(seg.x2, seg.y2);
-                ctx.stroke();
             }
         }
+
         ctx.restore();
     }
 
@@ -870,24 +873,45 @@ export class GameMap {
             const midY = (r.y1 + r.y2) / 2;
             if (!camera.isVisible(midX, midY, r.length / 2 + 100)) continue;
 
-            // Border shoulder
-            ctx.strokeStyle = this.config.roadBorderColor;
-            ctx.lineWidth = r.width + 14;
+            let curRoadBorder = this.config.roadBorderColor;
+            let curRoadColor = this.config.roadColor;
+
+            if (this.theme === 'megalopolis') {
+                if (midY >= 2100) {
+                    curRoadBorder = '#ff007f';
+                    curRoadColor = '#15191f';
+                } else if (midX >= 2100) {
+                    curRoadBorder = '#a88a58';
+                    curRoadColor = '#2b303a';
+                } else {
+                    curRoadBorder = '#7cb342';
+                    curRoadColor = '#343a40';
+                }
+            }
+
+            // Outer road borders / curbs
+            ctx.strokeStyle = curRoadBorder;
+            ctx.lineWidth = r.width + 12;
             ctx.lineCap = 'round';
             ctx.beginPath();
             ctx.moveTo(r.x1, r.y1);
             ctx.lineTo(r.x2, r.y2);
             ctx.stroke();
 
-            // Main asphalt
-            ctx.strokeStyle = this.config.roadColor;
+            // Main asphalt surface
+            ctx.strokeStyle = curRoadColor;
             ctx.lineWidth = r.width;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(r.x1, r.y1);
+            ctx.lineTo(r.x2, r.y2);
             ctx.stroke();
 
-            // Center lane markings
+            // Center dash line
             ctx.strokeStyle = this.config.roadLineColor;
-            ctx.lineWidth = 4;
-            ctx.setLineDash([25, 30]);
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'butt';
+            ctx.setLineDash([24, 20]);
             ctx.beginPath();
             ctx.moveTo(r.x1, r.y1);
             ctx.lineTo(r.x2, r.y2);
@@ -900,318 +924,220 @@ export class GameMap {
 
     drawBridges(ctx, camera) {
         ctx.save();
+
         for (const b of this.bridges) {
-            if (!camera.isVisible(b.x, b.y, 220)) continue;
+            if (!camera.isVisible(b.x, b.y, Math.max(b.w, b.h) + 60)) continue;
 
             ctx.save();
             ctx.translate(b.x, b.y);
-            if (b.angle) {
-                ctx.rotate(b.angle);
-            }
+            if (b.angle) ctx.rotate(b.angle);
 
-            // 1. Bridge Drop Shadow cast onto water below
+            // Shadow
             ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
-            ctx.fillRect(-b.halfW + 8, -b.halfH + 12, b.w, b.h);
+            ctx.fillRect(-b.halfW + 6, -b.halfH + 6, b.w, b.h);
 
-            // 2. Concrete abutments / transition pads where bridge meets roads on north & south banks
-            ctx.fillStyle = '#37474f';
-            ctx.fillRect(-b.halfW - 4, -b.halfH - 8, b.w + 8, 14);
-            ctx.fillRect(-b.halfW - 4, b.halfH - 6, b.w + 8, 14);
+            // Base deck
+            let deckColor = '#4a5568';
+            let railColor = '#cbd5e1';
 
             if (b.type === 'wooden') {
-                // Timber Bridge Deck
-                ctx.fillStyle = '#6d4c41';
-                ctx.fillRect(-b.halfW, -b.halfH, b.w, b.h);
-
-                // Wood Planks across deck
-                ctx.fillStyle = '#4e342e';
-                for (let y = -b.halfH + 8; y <= b.halfH - 8; y += 14) {
-                    ctx.fillRect(-b.halfW + 4, y, b.w - 8, 3);
-                }
-
-                // Raised Timber Guardrails on sides
-                ctx.fillStyle = '#8d6e63';
-                ctx.fillRect(-b.halfW, -b.halfH, 12, b.h);
-                ctx.fillRect(b.halfW - 12, -b.halfH, 12, b.h);
-
-                // Railing Posts
-                ctx.fillStyle = '#3e2723';
-                for (let y = -b.halfH + 10; y <= b.halfH - 10; y += 24) {
-                    ctx.fillRect(-b.halfW + 2, y, 8, 8);
-                    ctx.fillRect(b.halfW - 10, y, 8, 8);
-                }
-            } else if (b.type === 'steel') {
-                // Heavy Industrial Steel Bridge
-                ctx.fillStyle = '#263238';
-                ctx.fillRect(-b.halfW, -b.halfH, b.w, b.h);
-
-                // Steel deck plates
-                ctx.fillStyle = '#37474f';
-                ctx.fillRect(-b.halfW + 10, -b.halfH + 6, b.w - 20, b.h - 12);
-
-                // Side Truss Girders with neon outline
-                ctx.strokeStyle = '#00f0ff';
-                ctx.lineWidth = 4;
-                ctx.strokeRect(-b.halfW, -b.halfH, b.w, b.h);
-
-                // Steel diagonal truss lattice
-                ctx.strokeStyle = '#ff007f';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(-b.halfW, -b.halfH);
-                ctx.lineTo(b.halfW, b.halfH);
-                ctx.moveTo(b.halfW, -b.halfH);
-                ctx.lineTo(-b.halfW, b.halfH);
-                ctx.stroke();
-
-                // Hazard chevrons on bridge entry
-                ctx.fillStyle = '#ffb300';
-                ctx.fillRect(-b.halfW + 12, -b.halfH, b.w - 24, 6);
-                ctx.fillRect(-b.halfW + 12, b.halfH - 6, b.w - 24, 6);
-            } else { // suspension / stone bridge
-                // Asphalt / Granite Bridge Deck
-                ctx.fillStyle = '#455a64';
-                ctx.fillRect(-b.halfW, -b.halfH, b.w, b.h);
-
-                // Road markings crossing bridge
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.moveTo(-b.halfW + 16, -b.halfH);
-                ctx.lineTo(-b.halfW + 16, b.halfH);
-                ctx.moveTo(b.halfW - 16, -b.halfH);
-                ctx.lineTo(b.halfW - 16, b.halfH);
-                ctx.stroke();
-
-                // Yellow Center divider
-                ctx.strokeStyle = '#ffeb3b';
-                ctx.lineWidth = 3;
-                ctx.setLineDash([16, 20]);
-                ctx.beginPath();
-                ctx.moveTo(0, -b.halfH);
-                ctx.lineTo(0, b.halfH);
-                ctx.stroke();
-                ctx.setLineDash([]);
-
-                // Reinforced Concrete Parapets
-                ctx.fillStyle = '#263238';
-                ctx.fillRect(-b.halfW, -b.halfH, 14, b.h);
-                ctx.fillRect(b.halfW - 14, -b.halfH, 14, b.h);
-
-                // Suspension Cables / Towers
-                ctx.strokeStyle = '#00e5ff';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.moveTo(-b.halfW + 7, -b.halfH);
-                ctx.lineTo(-b.halfW + 7, b.halfH);
-                ctx.moveTo(b.halfW - 7, -b.halfH);
-                ctx.lineTo(b.halfW - 7, b.halfH);
-                ctx.stroke();
+                deckColor = '#8d6e63';
+                railColor = '#d7ccc8';
+            } else if (b.type === 'stone') {
+                deckColor = '#546e7a';
+                railColor = '#b0bec5';
+            } else if (b.type === 'steel' || b.type === 'composite') {
+                deckColor = '#2d3748';
+                railColor = '#00d2ff';
+            } else if (b.type === 'suspension') {
+                deckColor = '#374151';
+                railColor = '#f59e0b';
             }
+
+            ctx.fillStyle = deckColor;
+            ctx.fillRect(-b.halfW, -b.halfH, b.w, b.h);
+
+            // Road lane surface across bridge deck
+            ctx.fillStyle = this.config.roadColor;
+            ctx.fillRect(-b.halfW + 10, -b.halfH, b.w - 20, b.h);
+
+            // Guardrails
+            ctx.fillStyle = railColor;
+            ctx.fillRect(-b.halfW, -b.halfH, 10, b.h);
+            ctx.fillRect(b.halfW - 10, -b.halfH, 10, b.h);
+
+            // Center line
+            ctx.strokeStyle = this.config.roadLineColor;
+            ctx.lineWidth = 3;
+            ctx.setLineDash([16, 14]);
+            ctx.beginPath();
+            ctx.moveTo(0, -b.halfH);
+            ctx.lineTo(0, b.halfH);
+            ctx.stroke();
+            ctx.setLineDash([]);
 
             ctx.restore();
         }
+
         ctx.restore();
     }
 
     drawBuildings(ctx, camera) {
         ctx.save();
+
         for (const b of this.buildings) {
-            if (!camera.isVisible(b.x, b.y, Math.max(b.w, b.h) + 60)) continue;
+            if (!camera.isVisible(b.x, b.y, Math.max(b.w, b.h) + 40)) continue;
 
-            // 2.5D building shadow
+            // Shadow
             ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-            ctx.fillRect(b.x - b.halfW + 12, b.y - b.halfH + 14, b.w, b.h);
+            ctx.fillRect(b.x - b.halfW + 6, b.y - b.halfH + 6, b.w, b.h);
 
-            // Wall base
-            let wallColor = '#dcdde1';
-            let roofColor = '#e84118';
+            let roofColor = '#e74c3c';
+            let wallColor = '#ecf0f1';
 
-            if (this.theme === 'industrial') {
-                wallColor = '#2f3640';
-                roofColor = '#353b48';
-            } else if (this.theme === 'river') {
-                wallColor = '#718093';
-                roofColor = '#273c75';
+            if (b.type.includes('villa')) {
+                roofColor = '#3498db';
+                wallColor = '#ffffff';
+            } else if (b.type.includes('dock') || b.type.includes('boat')) {
+                roofColor = '#d35400';
+                wallColor = '#bdc3c7';
+            } else if (b.type.includes('warehouse')) {
+                roofColor = '#2c3e50';
+                wallColor = '#7f8c8d';
+            } else if (b.type.includes('factory')) {
+                roofColor = '#1e272e';
+                wallColor = '#485460';
             }
 
+            // Walls
             ctx.fillStyle = wallColor;
             ctx.fillRect(b.x - b.halfW, b.y - b.halfH, b.w, b.h);
 
-            // Roof with bevel
+            // Roof
             ctx.fillStyle = roofColor;
-            ctx.fillRect(b.x - b.halfW + 8, b.y - b.halfH + 8, b.w - 16, b.h - 16);
+            ctx.fillRect(b.x - b.halfW + 6, b.y - b.halfH + 6, b.w - 12, b.h - 12);
 
-            // Neon roof highlight / signage
-            if (this.theme === 'industrial') {
-                ctx.strokeStyle = '#00d2ff';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(b.x - b.halfW + 8, b.y - b.halfH + 8, b.w - 16, b.h - 16);
-            }
+            // Border
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(b.x - b.halfW, b.y - b.halfH, b.w, b.h);
         }
+
         ctx.restore();
     }
 
     drawSolidProps(ctx, camera) {
         ctx.save();
         for (const p of this.solidProps) {
-            if (!camera.isVisible(p.x, p.y, p.radius + 40)) continue;
+            if (!camera.isVisible(p.x, p.y, p.radius + 20)) continue;
 
-            // Clean rectangular drop shadow (zero circular shapes)
+            const half = p.radius;
+            // Drop shadow
             ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-            ctx.fillRect(p.x - p.w / 2 + 4, p.y - p.h / 2 + 4, p.w, p.h);
+            ctx.fillRect(p.x - half + 4, p.y - half + 4, half * 2, half * 2);
 
-            if (p.type === 'transformer') {
-                ctx.fillStyle = '#2d3436';
-                ctx.fillRect(p.x - p.w / 2, p.y - p.h / 2, p.w, p.h);
-                ctx.strokeStyle = '#f1c40f';
-                ctx.lineWidth = 2.5;
-                ctx.strokeRect(p.x - p.w / 2, p.y - p.h / 2, p.w, p.h);
-                // Warning indicator
-                ctx.fillStyle = '#f1c40f';
-                ctx.fillRect(p.x - 3, p.y - 6, 6, 12);
-            } else if (p.type === 'monument') {
-                ctx.fillStyle = '#57606f';
-                ctx.fillRect(p.x - p.w / 2, p.y - p.h / 2, p.w, p.h);
-                ctx.strokeStyle = '#747d8c';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(p.x - p.w / 2, p.y - p.h / 2, p.w, p.h);
-            } else {
-                ctx.fillStyle = '#747d8c';
-                ctx.fillRect(p.x - p.w / 2, p.y - p.h / 2, p.w, p.h);
-            }
+            // Solid obstacle base
+            ctx.fillStyle = '#636e72';
+            ctx.fillRect(p.x - half, p.y - half, half * 2, half * 2);
+
+            // Bevel highlight
+            ctx.fillStyle = '#b2bec3';
+            ctx.fillRect(p.x - half + 4, p.y - half + 4, half * 2 - 8, half * 2 - 8);
+
+            ctx.strokeStyle = '#2d3436';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(p.x - half, p.y - half, half * 2, half * 2);
         }
         ctx.restore();
     }
 
     drawDestructibles(ctx, camera) {
         ctx.save();
+
         for (const d of this.destructibles) {
             if (d.destroyed) continue;
-            if (!camera.isVisible(d.x, d.y, d.radius + 40)) continue;
+            if (!camera.isVisible(d.x, d.y, d.radius + 20)) continue;
 
-            // Shadow
+            // Soft shadow
             ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
             ctx.beginPath();
-            ctx.ellipse(d.x + 3, d.y + 3, d.radius, d.radius * 0.6, 0, 0, Math.PI * 2);
+            ctx.ellipse(d.x + 2, d.y + 2, d.radius * 0.9, d.radius * 0.6, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            if (d.type === 'fence') {
-                ctx.fillStyle = this.theme === 'suburbs' ? '#ffffff' : '#d35400';
-                ctx.fillRect(d.x - 20, d.y - 5, 40, 10);
-                ctx.fillStyle = '#7f8c8d';
-                ctx.fillRect(d.x - 16, d.y - 8, 4, 16);
-                ctx.fillRect(d.x + 12, d.y - 8, 4, 16);
-            } else if (d.type === 'sign') {
-                ctx.fillStyle = '#95a5a6';
-                ctx.fillRect(d.x - 2, d.y - 2, 4, 14);
-                ctx.fillStyle = '#e74c3c';
-                ctx.beginPath();
-                ctx.arc(d.x, d.y - 6, 10, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(d.x - 6, d.y - 8, 12, 4);
-            } else if (d.type === 'crate') {
-                ctx.fillStyle = '#b9770e';
-                ctx.fillRect(d.x - 10, d.y - 10, 20, 20);
-                ctx.strokeStyle = '#784212';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(d.x - 10, d.y - 10, 20, 20);
-            } else if (d.type === 'barrel') {
-                ctx.fillStyle = '#c0392b';
-                ctx.beginPath();
-                ctx.arc(d.x, d.y, 11, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.strokeStyle = '#f1c40f';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-            } else if (d.type === 'bush') {
+            // Prop drawing based on type
+            if (d.type === 'bush') {
                 ctx.fillStyle = '#27ae60';
                 ctx.beginPath();
-                ctx.arc(d.x, d.y, 12, 0, Math.PI * 2);
+                ctx.arc(d.x, d.y, d.radius, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.fillStyle = '#2ecc71';
+            } else if (d.type === 'fence') {
+                ctx.fillStyle = '#ecf0f1';
+                ctx.fillRect(d.x - d.w / 2, d.y - d.h / 2, d.w, d.h);
+                ctx.strokeStyle = '#bdc3c7';
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(d.x - d.w / 2, d.y - d.h / 2, d.w, d.h);
+            } else if (d.type === 'barrel') {
+                ctx.fillStyle = '#e67e22';
                 ctx.beginPath();
-                ctx.arc(d.x - 2, d.y - 2, 8, 0, Math.PI * 2);
+                ctx.arc(d.x, d.y, d.radius, 0, Math.PI * 2);
                 ctx.fill();
-            } else if (d.type === 'barrier') {
-                ctx.fillStyle = '#bdc3c7';
-                ctx.fillRect(d.x - 20, d.y - 8, 40, 16);
-                ctx.fillStyle = '#e74c3c';
-                ctx.fillRect(d.x - 12, d.y - 8, 8, 16);
-                ctx.fillRect(d.x + 4, d.y - 8, 8, 16);
-            } else if (d.type === 'container_small') {
-                ctx.fillStyle = '#2980b9';
-                ctx.fillRect(d.x - 20, d.y - 12, 40, 24);
-                ctx.strokeStyle = '#1abc9c';
+                ctx.strokeStyle = '#d35400';
                 ctx.lineWidth = 2;
-                ctx.strokeRect(d.x - 20, d.y - 12, 40, 24);
-            } else if (d.type === 'streetlight') {
-                ctx.fillStyle = '#7f8c8d';
-                ctx.beginPath();
-                ctx.arc(d.x, d.y, 6, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.fillStyle = '#f1c40f';
-                ctx.beginPath();
-                ctx.arc(d.x, d.y, 3, 0, Math.PI * 2);
-                ctx.fill();
-            } else if (d.type === 'hydrant') {
-                ctx.fillStyle = '#e74c3c';
-                ctx.beginPath();
-                ctx.arc(d.x, d.y, 7, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.stroke();
+            } else if (d.type === 'crate') {
+                ctx.fillStyle = '#cd6133';
+                ctx.fillRect(d.x - d.w / 2, d.y - d.h / 2, d.w, d.h);
+                ctx.strokeStyle = '#843b18';
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(d.x - d.w / 2, d.y - d.h / 2, d.w, d.h);
+            } else if (d.type === 'barrier') {
                 ctx.fillStyle = '#f39c12';
-                ctx.fillRect(d.x - 5, d.y - 3, 10, 6);
+                ctx.fillRect(d.x - d.w / 2, d.y - d.h / 2, d.w, d.h);
+                ctx.strokeStyle = '#2c3e50';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(d.x - d.w / 2, d.y - d.h / 2, d.w, d.h);
+            } else if (d.type === 'streetlight' || d.type === 'hydrant') {
+                ctx.fillStyle = (d.type === 'hydrant') ? '#e74c3c' : '#f1c40f';
+                ctx.beginPath();
+                ctx.arc(d.x, d.y, d.radius, 0, Math.PI * 2);
+                ctx.fill();
             } else {
-                ctx.fillStyle = '#d35400';
-                ctx.fillRect(d.x - 8, d.y - 8, 16, 16);
+                ctx.fillStyle = '#95a5a6';
+                ctx.fillRect(d.x - d.w / 2, d.y - d.h / 2, d.w, d.h);
             }
         }
+
         ctx.restore();
     }
 
     drawTrees(ctx, camera) {
         ctx.save();
+
         for (const t of this.trees) {
-            if (!camera.isVisible(t.x, t.y, t.size + 40)) continue;
+            if (!camera.isVisible(t.x, t.y, t.size + 20)) continue;
 
             ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
             ctx.beginPath();
-            ctx.ellipse(t.x + 8, t.y + 8, t.size * 0.8, t.size * 0.5, 0, 0, Math.PI * 2);
+            ctx.ellipse(t.x + 3, t.y + 4, t.size * 0.85, t.size * 0.55, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            ctx.fillStyle = '#4e342e';
+            let crownColor = '#2e7d32';
+            if (t.type === 'suburbs') crownColor = '#ff80ab'; // Cherry blossom
+            else if (t.type === 'river') crownColor = '#43a047'; // Summer palm/willow
+            else if (t.type === 'industrial') crownColor = '#37474f'; // Urban evergreen
+
+            ctx.fillStyle = crownColor;
             ctx.beginPath();
-            ctx.arc(t.x, t.y, 6, 0, Math.PI * 2);
+            ctx.arc(t.x, t.y, t.size, 0, Math.PI * 2);
             ctx.fill();
 
-            if (this.theme === 'suburbs') {
-                ctx.fillStyle = '#f06292'; // Cherry blossom
-                ctx.beginPath();
-                ctx.arc(t.x, t.y - 6, t.size * 0.85, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.fillStyle = '#f8bbd0';
-                ctx.beginPath();
-                ctx.arc(t.x - 4, t.y - 10, t.size * 0.5, 0, Math.PI * 2);
-                ctx.fill();
-            } else if (this.theme === 'industrial') {
-                ctx.fillStyle = '#1b4d3e'; // Dark conifer
-                ctx.beginPath();
-                ctx.arc(t.x, t.y - 6, t.size * 0.85, 0, Math.PI * 2);
-                ctx.fill();
-            } else { // river
-                ctx.fillStyle = '#2e7d32'; // Lush willow
-                ctx.beginPath();
-                ctx.arc(t.x, t.y - 6, t.size * 0.85, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.fillStyle = '#4caf50';
-                ctx.beginPath();
-                ctx.arc(t.x - 5, t.y - 10, t.size * 0.5, 0, Math.PI * 2);
-                ctx.fill();
-            }
+            // Inner crown highlight
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+            ctx.beginPath();
+            ctx.arc(t.x - t.size * 0.25, t.y - t.size * 0.25, t.size * 0.55, 0, Math.PI * 2);
+            ctx.fill();
         }
+
         ctx.restore();
     }
 }

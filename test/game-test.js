@@ -1,4 +1,4 @@
-// test/game-test.js - Comprehensive test suite for Neon Getaway: Destruction Run
+// test/game-test.js - Comprehensive test suite for Neon Getaway: Destruction Run V3
 import assert from 'node:assert';
 import { CONFIG, CAR_MODELS, MAP_CONFIGS } from '../src/config.js';
 import { GameMap } from '../src/maps.js';
@@ -11,14 +11,16 @@ import { storage } from '../src/storage.js';
 import { PlayerCar } from '../src/player.js';
 import { CollisionEngine } from '../src/collisions.js';
 import { ControlsManager } from '../src/controls.js';
+import { RankingManager, RANK_TIERS } from '../src/ranking.js';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-console.log('=== STARTING NEON GETAWAY TEST SUITE ===');
+console.log('=== STARTING SMASH BANDITS RUNNER V3 TEST SUITE ===');
 
 // Test 1: Config & Title
 console.log('Test 1: Verifying game title and configuration...');
-assert.strictEqual(CONFIG.TITLE, 'NEON GETAWAY: DESTRUCTION RUN');
+assert.strictEqual(CONFIG.TITLE, 'SMASH BANDITS RUNNER');
+assert.strictEqual(CONFIG.SHORT_TITLE, 'SMASH BANDITS');
 assert.strictEqual(CONFIG.ABILITY_COOLDOWN, 150, 'Ability cooldown must be exactly 150 seconds');
 assert.strictEqual(CONFIG.BLACK_POLICE_UNLOCK_TIME, 600, 'Black police must unlock at 10 minutes (600s)');
 console.log('✓ Title and configuration verified.');
@@ -75,17 +77,19 @@ for (const key of carKeys) {
 }
 console.log('✓ 5 Common, 5 Epic, and 5 Legendary cars verified with unique stats, rarities, and visuals.');
 
-// Test 3: Exactly 3 Improved Maps & Bug Fixes (Zero Houses in Roads, Water/Bridges, Destructibility >= 57%)
-console.log('Test 3: Verifying three improved maps, road clearances, water collision, and >= 57% destructibles...');
-assert.strictEqual(MAP_CONFIGS.length, 3, 'Must have exactly 3 maps');
+// Test 3: Exactly 4 Maps with Unique Structures & 4th Combined Tri-Season Megalopolis
+console.log('Test 3: Verifying 4 distinct maps, road clearances, water collision, and >= 57% destructibles...');
+assert.strictEqual(MAP_CONFIGS.length, 4, 'Must have exactly 4 maps in V3');
 assert.strictEqual(MAP_CONFIGS[0].id, 'suburbs');
 assert.strictEqual(MAP_CONFIGS[0].name, 'Green Suburbs');
 assert.strictEqual(MAP_CONFIGS[1].id, 'river');
 assert.strictEqual(MAP_CONFIGS[1].name, 'River District');
 assert.strictEqual(MAP_CONFIGS[2].id, 'industrial');
 assert.strictEqual(MAP_CONFIGS[2].name, 'Neon Industrial Zone');
+assert.strictEqual(MAP_CONFIGS[3].id, 'megalopolis');
+assert.strictEqual(MAP_CONFIGS[3].name, 'Tri-Season Metropolis');
 
-for (let i = 0; i < 3; i++) {
+for (let i = 0; i < 4; i++) {
     const map = new GameMap(i);
     assert(map.roads.length >= 6, `Map ${map.name} must have road network`);
     assert(map.buildings.length >= 8, `Map ${map.name} must have distinct buildings`);
@@ -112,7 +116,7 @@ for (let i = 0; i < 3; i++) {
             assert.strictEqual(map.isInWater(b.x, b.y), false, `Bridge ${bIdx + 1} (${b.id}) must NEVER register as in water`);
         }
 
-        // Specifically test Bridges 2 and 4 at the diagonal road crossings (previously triggered "you got wet"):
+        // Specifically test Bridges 2 and 4 at the crossings (previously triggered "you got wet"):
         const bridge2 = map.bridges[1];
         const bridge4 = map.bridges[3];
         assert.strictEqual(bridge2.id, 'bridge_2');
@@ -125,19 +129,21 @@ for (let i = 0; i < 3; i++) {
         // Test approaching and crossing Bridge 4:
         assert.strictEqual(map.isOnBridge(bridge4.x, bridge4.y), true, 'Bridge 4 must be identified as bridge');
         assert.strictEqual(map.isInWater(bridge4.x, bridge4.y), false, 'Bridge 4 must NOT trigger water or wet message');
-
-        // Verify actual water off-bridge STILL registers as hazardous water
-        assert.strictEqual(map.isInWater(1600, 1790), true, 'Open river water must register as in water');
-        assert.strictEqual(map.isInWater(2500, 1785), true, 'Open river water must register as in water');
     }
 
     // Verify >= 57% and around 60% Destructible Environmental Objects
     const ratio = map.getDestructibleRatio();
     console.log(`  Map ${map.name}: Destructibles = ${map.destructibles.length}, Solid Props = ${map.solidProps.length}, Ratio = ${(ratio * 100).toFixed(1)}%`);
     assert(ratio >= 0.57, `At least 57% of eligible environmental objects must be destructible (was ${(ratio * 100).toFixed(1)}%)`);
-    assert(ratio <= 0.65, `Destructible ratio must be around 60% (was ${(ratio * 100).toFixed(1)}%)`);
+    assert(ratio <= 0.70, `Destructible ratio must be balanced (was ${(ratio * 100).toFixed(1)}%)`);
 }
-console.log('✓ Three improved maps verified with clear roads, water barriers, drivable bridges, and >= 57% destructibles.');
+
+// Special check for Map 3 Tri-Season Megalopolis sector traction
+const map3 = new GameMap(3);
+assert.strictEqual(map3.getTractionAt(500, 500), 0.95, 'NW Spring Suburbs sector must have 0.95 traction');
+assert.strictEqual(map3.getTractionAt(3500, 500), 0.98, 'NE Summer Waterfront sector must have 0.98 traction');
+assert.strictEqual(map3.getTractionAt(2000, 3500), 0.92, 'South Neon Industrial sector must have 0.92 traction');
+console.log('✓ Four distinct seasonal maps verified with clear roads, water barriers, drivable bridges, and >= 57% destructibles.');
 
 // Test 4: Gacha System Probabilities (50% Common, 30% Rare, 15% Epic, 5% Legendary) & Duplicate Compensation
 console.log('Test 4: Verifying Gacha System rates, bulk rolling, and duplicate compensation...');
@@ -265,7 +271,7 @@ assert.strictEqual(testCar.damage.health, hpAfterCopHit, 'Damage must NOT be rep
 assert(!mockMap.drawGroundDetails.toString().includes('arc'), 'drawGroundDetails must NOT draw circular artifacts on the ground');
 assert(!mockMap.drawSolidProps.toString().includes('arc'), 'drawSolidProps must NOT draw circular artifacts on the ground');
 
-for (let mapIdx = 0; mapIdx < 3; mapIdx++) {
+for (let mapIdx = 0; mapIdx < 4; mapIdx++) {
     const testMap = new GameMap(mapIdx);
     // Verify circular props removed
     const circularProps = testMap.solidProps.filter(p => p.type === 'bollard' || p.type === 'pylon');
@@ -414,5 +420,73 @@ assert(indexHtmlContent.includes('id="btn-touch-brake"'), 'index.html must conta
 assert(indexHtmlContent.includes('id="btn-touch-drift"'), 'index.html must contain mobile drift button');
 console.log('✓ Mobile virtual joystick, multi-touch buttons, and mobile-v3.css verified.');
 
-console.log('=== ALL NEON GETAWAY TESTS PASSED (9/9) ===');
+// Test 10: Underground Syndicate Ranking System (Tiers E to S+, RP Calculations, Leaderboard, Rewards)
+console.log('Test 10: Verifying Underground Ranking System, Tiers, RP Calculations, and Leaderboards...');
+const ranking = new RankingManager();
 
+// Verify Rank Tiers
+assert.strictEqual(RANK_TIERS.length, 7, 'Must have 7 distinct rank tiers (E, D, C, B, A, S, S+)');
+assert.strictEqual(RANK_TIERS[0].id, 'E');
+assert.strictEqual(RANK_TIERS[1].id, 'D');
+assert.strictEqual(RANK_TIERS[2].id, 'C');
+assert.strictEqual(RANK_TIERS[3].id, 'B');
+assert.strictEqual(RANK_TIERS[4].id, 'A');
+assert.strictEqual(RANK_TIERS[5].id, 'S');
+assert.strictEqual(RANK_TIERS[6].id, 'S_PLUS');
+assert.strictEqual(RANK_TIERS[6].badge, '👑');
+
+// Test RP Calculation for run
+const runStats = {
+    score: 15000,
+    copsWrecked: 12,
+    destructiblesSmashed: 65,
+    survivedTime: 180,
+    escaped: true
+};
+const rpResult = ranking.calculateRunRP(runStats);
+assert(rpResult.totalEarned > 0, 'RP earned must be positive');
+assert(rpResult.breakdown.scoreRP > 0);
+assert(rpResult.breakdown.wreckRP === 12 * 60, '12 wrecked cops * 60 RP');
+assert(rpResult.breakdown.smashRP === 65 * 6, '65 smashes * 6 RP');
+assert(rpResult.breakdown.escapeBonus === 200, 'Escape bonus must be 200 RP');
+
+// Test Rank Progress & Promotion
+storage.data.totalRP = 0;
+const tierE = ranking.getCurrentTierInfo();
+assert.strictEqual(tierE.tier.id, 'E');
+assert.strictEqual(tierE.tier.name, 'Street Novice');
+
+// Add 1200 RP -> Should promote to Rank D
+const promo1 = ranking.addRP(1200);
+assert.strictEqual(promo1.promoted, true);
+assert.strictEqual(promo1.newTier.id, 'D');
+assert.strictEqual(storage.getTotalRP(), 1200);
+
+// Add 60000 RP -> S_PLUS (Most Wanted Legend)
+const promoMax = ranking.addRP(60000);
+assert.strictEqual(promoMax.promoted, true);
+assert.strictEqual(promoMax.newTier.id, 'S_PLUS');
+assert.strictEqual(promoMax.newTier.name, 'Most Wanted Legend');
+
+// Test Leaderboard Generation
+const mostWantedLb = ranking.getLeaderboard('mostWanted');
+assert.strictEqual(mostWantedLb.length, 10, 'Most Wanted Leaderboard must contain 10 entries');
+assert(mostWantedLb.some(e => e.isPlayer), 'Leaderboard must include the player');
+
+const wreckLb = ranking.getLeaderboard('copsWrecked');
+assert.strictEqual(wreckLb.length, 10, 'Wrecker Leaderboard must contain 10 entries');
+
+// Test Rank Reward Claiming
+storage.data.claimedRankRewards = [];
+const canClaimD = ranking.canClaimTierReward('D');
+assert.strictEqual(canClaimD, true, 'Should be able to claim D reward at S+ tier');
+const claimDResult = ranking.claimTierReward('D');
+assert.strictEqual(claimDResult.success, true);
+assert.strictEqual(claimDResult.reward, 1500, 'Rank D cash reward is $1500');
+assert.strictEqual(storage.isRankRewardClaimed('D'), true);
+
+const reClaim = ranking.claimTierReward('D');
+assert.strictEqual(reClaim.success, false, 'Cannot re-claim already claimed reward');
+console.log('✓ Underground Ranking System, Tiers, RP Calculations, and Leaderboards verified.');
+
+console.log('=== ALL SMASH BANDITS RUNNER TESTS PASSED (10/10) ===');

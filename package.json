@@ -1,8 +1,8 @@
 {
-  "name": "neon-getaway",
-  "version": "2.0.0",
+  "name": "smash-bandits-runner",
+  "version": "3.0.0",
   "type": "module",
-  "description": "Neon Getaway: Destruction Run - 2D browser driving, destruction, and police pursuit game",
+  "description": "Smash Bandits Runner - 2D browser driving, destruction, and police pursuit game",
   "main": "index.html",
   "scripts": {
     "start": "npx serve -l 3000 .",
@@ -14,7 +14,7 @@
     "game",
     "canvas-2d",
     "arcade-driving",
-    "smash-bandits",
+    "smash-bandits-runner",
     "police-chase",
     "neon-getaway"
   ],

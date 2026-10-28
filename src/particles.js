@@ -58,199 +58,197 @@ export class ParticleManager {
     }
 
     spawnDebris(x, y, type = 'wood', count = 12) {
+        const colors = {
+            wood: ['#8d6e63', '#6d4c41', '#a1887f', '#d7ccc8'],
+            metal: ['#90a4ae', '#b0bec5', '#cfd8dc', '#eceff1'],
+            brick: ['#d32f2f', '#c62828', '#b71c1c', '#e57373'],
+            stone: ['#78909c', '#607d8b', '#546e7a', '#90a4ae'],
+            foliage: ['#388e3c', '#2e7d32', '#4caf50', '#81c784'],
+            glass: ['#80deea', '#4dd0e1', '#b2ebf2', '#ffffff']
+        }[type] || ['#90a4ae', '#b0bec5'];
+
         for (let i = 0; i < count; i++) {
             const angle = Math.random() * Math.PI * 2;
-            const speed = Math.random() * 180 + 60;
-            const zSpeed = Math.random() * 140 + 60;
-
-            let color = '#b07842';
-            let shape = 'splinter';
-            let w = Math.random() * 10 + 6;
-            let h = Math.random() * 4 + 2;
-
-            if (type === 'barrel') {
-                color = Math.random() > 0.4 ? '#c0392b' : '#7f8c8d';
-                shape = 'strip';
-                w = 8; h = 4;
-            } else if (type === 'rock') {
-                color = Math.random() > 0.5 ? '#7f8c8d' : '#95a5a6';
-                shape = 'chunk';
-                w = Math.random() * 8 + 4;
-                h = w;
-            } else if (type === 'sign') {
-                color = Math.random() > 0.5 ? '#f39c12' : '#ffffff';
-                shape = 'chunk';
-                w = 7; h = 7;
-            } else if (type === 'haybale') {
-                color = '#d4ac0d';
-                shape = 'splinter';
-                w = 9; h = 3;
-            } else if (type === 'flower') {
-                color = Math.random() > 0.5 ? '#ff69b4' : '#e74c3c';
-                shape = 'petal';
-                w = 5; h = 4;
-            }
+            const speed = Math.random() * 240 + 80;
+            const size = Math.random() * 5 + 3;
 
             this.debris.push({
-                x, y,
-                z: 0,
+                x,
+                y,
+                z: Math.random() * 8 + 4,
                 vx: Math.cos(angle) * speed,
                 vy: Math.sin(angle) * speed,
-                vz: zSpeed,
+                vz: Math.random() * 180 + 100,
+                w: size,
+                h: size * (Math.random() * 0.8 + 0.6),
                 rot: Math.random() * Math.PI * 2,
-                vrot: (Math.random() - 0.5) * 14,
-                w, h,
-                color,
-                shape,
+                vrot: (Math.random() - 0.5) * 12,
+                color: colors[Math.floor(Math.random() * colors.length)],
                 life: 1.0,
-                decay: Math.random() * 0.4 + 0.3
-            });
-        }
-
-        for (let i = 0; i < 6; i++) {
-            const ang = Math.random() * Math.PI * 2;
-            const spd = Math.random() * 50 + 20;
-            this.particles.push({
-                x, y,
-                vx: Math.cos(ang) * spd,
-                vy: Math.sin(ang) * spd,
-                size: Math.random() * 12 + 8,
-                growRate: 14,
-                life: 1.0,
-                decay: 2.0,
-                color: 'rgba(215, 200, 175, ',
-                type: 'smoke'
+                decay: Math.random() * 0.8 + 0.6
             });
         }
     }
 
-    spawnSparks(x, y, count = 10) {
-        for (let i = 0; i < count; i++) {
+    spawnExplosion(x, y, radius = 50) {
+        for (let i = 0; i < 35; i++) {
             const angle = Math.random() * Math.PI * 2;
-            const speed = Math.random() * 200 + 80;
+            const speed = Math.random() * 260 + 60;
             this.particles.push({
-                x, y,
+                x,
+                y,
                 vx: Math.cos(angle) * speed,
                 vy: Math.sin(angle) * speed,
-                size: Math.random() * 3 + 1,
-                growRate: -1,
+                size: Math.random() * 8 + 4,
+                growRate: -2,
                 life: 1.0,
-                decay: Math.random() * 3 + 2.5,
-                color: Math.random() > 0.3 ? '#f39c12' : '#ffffff',
+                decay: Math.random() * 1.5 + 1.0,
+                color: Math.random() > 0.4 ? '#ff9900' : '#ff3300',
                 type: 'spark'
             });
         }
-    }
 
-    spawnWaterSplash(x, y, count = 14) {
-        for (let i = 0; i < count; i++) {
+        for (let i = 0; i < 20; i++) {
             const angle = Math.random() * Math.PI * 2;
-            const speed = Math.random() * 120 + 40;
+            const speed = Math.random() * 120 + 20;
             this.particles.push({
-                x: x + (Math.random() - 0.5) * 16,
-                y: y + (Math.random() - 0.5) * 16,
+                x,
+                y,
                 vx: Math.cos(angle) * speed,
                 vy: Math.sin(angle) * speed,
-                size: Math.random() * 8 + 5,
-                growRate: 10,
+                size: Math.random() * 14 + 10,
+                growRate: 15,
                 life: 1.0,
-                decay: Math.random() * 2.2 + 1.8,
-                color: Math.random() > 0.4 ? 'rgba(75, 163, 227, ' : 'rgba(235, 245, 255, ',
+                decay: Math.random() * 0.9 + 0.8,
+                color: 'rgba(60, 60, 60, ',
                 type: 'smoke'
             });
         }
-    }
 
-    spawnEmpWave(x, y, radius = 280) {
         this.particles.push({
-            x, y,
+            x,
+            y,
             size: 10,
-            targetSize: radius,
+            targetSize: radius * 2.2,
             life: 1.0,
-            decay: 2.2,
-            color: 'rgba(0, 210, 255, ',
+            decay: 2.5,
+            color: 'rgba(255, 170, 0, ',
             type: 'shockwave'
         });
+    }
 
-        for (let i = 0; i < 16; i++) {
-            const ang = Math.random() * Math.PI * 2;
-            const dist = Math.random() * radius * 0.8;
+    spawnEMPShockwave(x, y, radius = 280) {
+        for (let i = 0; i < 40; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 320 + 100;
             this.particles.push({
-                x: x + Math.cos(ang) * dist,
-                y: y + Math.sin(ang) * dist,
-                vx: (Math.random() - 0.5) * 60,
-                vy: (Math.random() - 0.5) * 60,
+                x,
+                y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
                 size: Math.random() * 5 + 3,
                 growRate: 0,
                 life: 1.0,
-                decay: 3.0,
-                color: '#67e8f9',
+                decay: Math.random() * 2.0 + 1.2,
+                color: '#00e5ff',
                 type: 'spark'
             });
         }
-    }
 
-    spawnExplosion(x, y) {
         this.particles.push({
-            x, y,
-            size: 15,
-            targetSize: 140,
+            x,
+            y,
+            size: 20,
+            targetSize: radius,
             life: 1.0,
-            decay: 3.0,
-            color: 'rgba(255, 140, 0, ',
+            decay: 2.0,
+            color: 'rgba(0, 229, 255, ',
             type: 'shockwave'
         });
+    }
 
-        for (let i = 0; i < 22; i++) {
-            const ang = Math.random() * Math.PI * 2;
-            const spd = Math.random() * 140 + 40;
-            const isFire = Math.random() > 0.4;
+    spawnNitroFlame(x, y, angle) {
+        if (this.particles.length >= this.maxParticles) return;
+        const spread = (Math.random() - 0.5) * 0.3;
+        const pAngle = angle + Math.PI + spread;
+        const speed = Math.random() * 90 + 70;
+
+        const isCyan = Math.random() > 0.3;
+        this.particles.push({
+            x: x + (Math.random() - 0.5) * 4,
+            y: y + (Math.random() - 0.5) * 4,
+            vx: Math.cos(pAngle) * speed,
+            vy: Math.sin(pAngle) * speed,
+            size: Math.random() * 6 + 4,
+            growRate: -4,
+            life: 1.0,
+            decay: Math.random() * 3.5 + 2.5,
+            color: isCyan ? '#00e5ff' : '#ff007f',
+            type: 'spark'
+        });
+    }
+
+    spawnWaterSplash(x, y, count = 10) {
+        for (let i = 0; i < count; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 120 + 30;
             this.particles.push({
-                x, y,
-                vx: Math.cos(ang) * spd,
-                vy: Math.sin(ang) * spd,
-                size: Math.random() * 16 + 10,
-                growRate: 15,
+                x,
+                y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                size: Math.random() * 6 + 3,
+                growRate: 4,
                 life: 1.0,
-                decay: Math.random() * 1.5 + 1.2,
-                color: isFire ? 'rgba(255, 100, 20, ' : 'rgba(70, 70, 70, ',
+                decay: Math.random() * 1.8 + 1.2,
+                color: 'rgba(160, 230, 255, ',
                 type: 'smoke'
             });
         }
-
-        this.spawnDebris(x, y, 'barrel', 14);
-        this.spawnSparks(x, y, 20);
     }
 
-    addFloatingText(text, x, y, color = '#f1c40f', size = 18, isCritical = false) {
+    addFloatingText(text, x, y, color = '#ffd700', size = 18, isCritical = false) {
         this.floatingTexts.push({
             text,
-            x: x + (Math.random() - 0.5) * 20,
-            y: y - 10,
-            vy: -45,
+            x,
+            y,
+            vy: -40,
+            life: 1.0,
+            decay: isCritical ? 0.7 : 1.1,
             color,
             size,
-            scale: isCritical ? 1.4 : 1.0,
-            life: 1.0,
-            decay: 0.9,
-            isCritical
+            scale: isCritical ? 1.4 : 1.0
         });
     }
 
-    initWeather(type, count = 120, worldW = 4000, worldH = 4000) {
+    initWeather(type, count = 130, worldW = 4200, worldH = 4200) {
         this.weatherParticles = [];
         if (!type || type === 'none') return;
 
         for (let i = 0; i < count; i++) {
+            let pType = type;
+            const px = Math.random() * worldW;
+            const py = Math.random() * worldH;
+
+            if (type === 'blended') {
+                if (py >= 2100) {
+                    pType = 'neon_spark';
+                } else if (px >= 2100) {
+                    pType = 'sun_glint';
+                } else {
+                    pType = 'petal';
+                }
+            }
+
             this.weatherParticles.push({
-                x: Math.random() * worldW,
-                y: Math.random() * worldH,
-                vx: type === 'snow' ? (Math.random() * 40 - 20) : (Math.random() * 60 + 30),
-                vy: type === 'snow' ? (Math.random() * 60 + 40) : (Math.random() * 40 + 20),
-                size: type === 'snow' ? (Math.random() * 2.5 + 1.5) : (Math.random() * 4 + 3),
+                x: px,
+                y: py,
+                vx: pType === 'neon_spark' ? (Math.random() * 40 - 20) : (Math.random() * 60 + 30),
+                vy: pType === 'neon_spark' ? -(Math.random() * 50 + 20) : (Math.random() * 40 + 20),
+                size: pType === 'neon_spark' ? (Math.random() * 2.5 + 1) : (Math.random() * 4 + 3),
                 rot: Math.random() * Math.PI * 2,
                 vrot: (Math.random() - 0.5) * 4,
-                type: type,
+                type: pType,
                 alpha: Math.random() * 0.5 + 0.4
             });
         }
@@ -324,9 +322,10 @@ export class ParticleManager {
             wp.y += wp.vy * dt;
             wp.rot += wp.vrot * dt;
 
-            if (wp.y > 4000) wp.y = 0;
-            if (wp.x > 4000) wp.x = 0;
-            if (wp.x < 0) wp.x = 4000;
+            if (wp.y > 4200) wp.y = 0;
+            if (wp.y < 0) wp.y = 4200;
+            if (wp.x > 4200) wp.x = 0;
+            if (wp.x < 0) wp.x = 4200;
         }
     }
 
@@ -405,6 +404,7 @@ export class ParticleManager {
 
             ctx.save();
             ctx.globalAlpha = wp.alpha;
+
             if (wp.type === 'snow') {
                 ctx.fillStyle = '#ffffff';
                 ctx.beginPath();
@@ -417,7 +417,24 @@ export class ParticleManager {
                 ctx.beginPath();
                 ctx.ellipse(0, 0, wp.size * 1.5, wp.size * 0.8, 0, 0, Math.PI * 2);
                 ctx.fill();
+            } else if (wp.type === 'neon_spark') {
+                ctx.translate(wp.x, wp.y);
+                ctx.fillStyle = '#ff007f';
+                ctx.shadowColor = '#00d2ff';
+                ctx.shadowBlur = 8;
+                ctx.beginPath();
+                ctx.arc(0, 0, wp.size, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (wp.type === 'sun_glint') {
+                ctx.translate(wp.x, wp.y);
+                ctx.fillStyle = '#f1c40f';
+                ctx.shadowColor = '#f39c12';
+                ctx.shadowBlur = 6;
+                ctx.beginPath();
+                ctx.arc(0, 0, wp.size, 0, Math.PI * 2);
+                ctx.fill();
             }
+
             ctx.restore();
         }
 

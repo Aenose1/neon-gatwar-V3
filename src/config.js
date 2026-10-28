@@ -1,7 +1,7 @@
 // src/config.js - Configurable game title, vehicle definitions, map settings, and ability timings
 export const CONFIG = {
-    TITLE: 'NEON GETAWAY: DESTRUCTION RUN',
-    SHORT_TITLE: 'NEON GETAWAY',
+    TITLE: 'SMASH BANDITS RUNNER',
+    SHORT_TITLE: 'SMASH BANDITS',
     SUBTITLE: 'DESTRUCTION RUN',
     VERSION: '2.0.0',
 
@@ -471,6 +471,23 @@ export const MAP_CONFIGS = [
         ambientColor: 'rgba(0, 210, 255, 0.06)',
         surfaceTraction: 0.92,
         weather: 'none',
+        spawnX: 2100,
+        spawnY: 3400
+    },
+    {
+        id: 'megalopolis',
+        name: 'Tri-Season Metropolis',
+        season: 'All Seasons',
+        description: 'The ultimate getaway arena uniting Green Suburbs (Spring), River District (Summer), and Neon Industrial (Night) with inter-seasonal superhighways!',
+        theme: 'megalopolis',
+        groundColor: '#1e242d',
+        groundAccent: '#262f3a',
+        roadColor: '#202630',
+        roadLineColor: '#00d2ff',
+        roadBorderColor: '#ff007f',
+        ambientColor: 'rgba(255, 255, 255, 0.04)',
+        surfaceTraction: 0.95,
+        weather: 'blended',
         spawnX: 2100,
         spawnY: 3400
     }

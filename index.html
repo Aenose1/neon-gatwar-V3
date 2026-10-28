@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Neon Getaway: Destruction Run</title>
+    <title>Smash Bandits Runner</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="mobile-v3.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏎️</text></svg>">
@@ -13,11 +13,17 @@
         <!-- Main HTML5 2D Canvas -->
         <canvas id="game-canvas"></canvas>
 
-        <!-- Top Menu Currency & Sound Bar -->
+        <!-- Top Menu Currency, Rank Badge & Sound Bar -->
         <div class="top-menu-bar">
-            <div class="currency-badge">
-                <span>💰</span>
-                <span id="menu-cash-display">$500</span>
+            <div class="top-menu-left-cluster">
+                <div class="currency-badge">
+                    <span>💰</span>
+                    <span id="menu-cash-display">$500</span>
+                </div>
+                <div id="menu-ranking-badge" class="ranking-badge" title="Underground Driver Rank">
+                    <span id="menu-rank-icon">🔰</span>
+                    <span id="menu-rank-name">NOVICE</span>
+                </div>
             </div>
             <button id="btn-sound-toggle" class="sound-toggle-btn" title="Toggle Sound">
                 <span class="sound-state-icon">🔊</span>
@@ -27,13 +33,16 @@
         <!-- 1. MAIN MENU SCREEN -->
         <div id="main-menu" class="screen-overlay">
             <div class="game-logo-container">
-                <h1 class="game-title">NEON GETAWAY</h1>
-                <div class="game-subtitle">DESTRUCTION RUN</div>
+                <h1 class="game-title">SMASH BANDITS</h1>
+                <div class="game-subtitle">RUNNER</div>
             </div>
 
             <div class="menu-actions-stack">
                 <button id="btn-play" class="btn-arcade">
                     <span>⚡</span> PLAY GETAWAY
+                </button>
+                <button id="btn-ranking" class="btn-arcade btn-secondary">
+                    <span>🏆</span> RANKINGS & LEADERBOARD
                 </button>
                 <button id="btn-gacha" class="btn-arcade btn-secondary">
                     <span>🎰</span> CAR GACHA
@@ -51,49 +60,62 @@
             </div>
         </div>
 
-        <!-- 2. MAP SELECTION SCREEN (Exactly 3 Maps) -->
+        <!-- 2. MAP SELECTION SCREEN (4 Distinct Maps) -->
         <div id="map-select-screen" class="screen-overlay hidden">
             <div class="game-logo-container">
                 <h2 class="game-title" style="font-size: 2.2rem;">SELECT GETAWAY MAP</h2>
-                <div class="game-subtitle">CHOOSE YOUR ESCAPE ROUTE</div>
+                <div class="game-subtitle">CHOOSE YOUR ESCAPE ROUTE & SEASON</div>
             </div>
 
             <div class="map-selection-grid">
-                <!-- Map 1: Green Suburbs -->
+                <!-- Map 1: Green Suburbs (Spring) -->
                 <div class="map-card map-suburbs" data-map-index="0">
                     <div class="map-preview">🏡</div>
                     <div class="map-info">
-                        <div class="map-title">Green Suburbs</div>
-                        <div class="map-desc">Suburban avenues, front-yard fences, blossoming trees, streetlights, and hydrant hazards. Roads 100% clear.</div>
+                        <div class="map-title">Green Suburbs (Spring)</div>
+                        <div class="map-desc">Suburban avenues, central park roundabout, blooming trees, front fences, and creek crossings.</div>
                         <div class="map-stats">
-                            <span>SURFACE: ASPHALT / LAWN</span>
+                            <span>SURFACE: SPRING ASPHALT / TURF</span>
                             <span>TRACTION: 95%</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Map 2: River District -->
+                <!-- Map 2: River District (Summer) -->
                 <div class="map-card map-river" data-map-index="1">
                     <div class="map-preview">🌊</div>
                     <div class="map-info">
-                        <div class="map-title">River District</div>
-                        <div class="map-desc">Scenic canals, stone and suspension bridges, shipping docks, and deep water hazards. Bridges are drivable!</div>
+                        <div class="map-title">River District (Summer)</div>
+                        <div class="map-desc">Twin shore boulevards, maritime canals, stone bridges, shipping docks, and deep water hazards.</div>
                         <div class="map-stats">
-                            <span>SURFACE: ROAD & WATERWAYS</span>
+                            <span>SURFACE: SUMMER DOCKS & CANALS</span>
                             <span>TRACTION: 98%</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Map 3: Neon Industrial Zone -->
+                <!-- Map 3: Neon Industrial Zone (Neon Night) -->
                 <div class="map-card map-industrial" data-map-index="2">
                     <div class="map-preview">⚡</div>
                     <div class="map-info">
-                        <div class="map-title">Neon Industrial Zone</div>
-                        <div class="map-desc">High-voltage freight warehouses, shipping containers, neon markings, oil drums, and heavy concrete barriers.</div>
+                        <div class="map-title">Neon Industrial Zone (Night)</div>
+                        <div class="map-desc">8-lane freight drag expressway, factory warehouse chicanes, rail yards, and heavy steel barriers.</div>
                         <div class="map-stats">
                             <span>SURFACE: INDUSTRIAL ASPHALT</span>
                             <span>TRACTION: 92%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Map 4: Tri-Season Megalopolis (All 3 Seasons Combined!) -->
+                <div class="map-card map-megalopolis" data-map-index="3">
+                    <div class="map-preview">🌐</div>
+                    <div class="map-info">
+                        <div class="map-title">Tri-Season Metropolis</div>
+                        <div class="map-desc">All 3 seasons united! Spring suburbs in the NW, Summer river in the NE, and Neon industrial night in the South.</div>
+                        <div class="map-stats">
+                            <span>SURFACE: 3 SEASONS HYBRID</span>
+                            <span>TRACTION: 92-98% DYNAMIC</span>
                         </div>
                     </div>
                 </div>
@@ -104,7 +126,7 @@
             </button>
         </div>
 
-        <!-- 3. GARAGE SHOWROOM SCREEN (10 Cars Roster) -->
+        <!-- 3. GARAGE SHOWROOM SCREEN (17 Cars Roster) -->
         <div id="garage-screen" class="screen-overlay hidden">
             <div class="garage-container">
                 <div class="top-menu-bar" style="position: static; width: 100%; margin-bottom: 5px;">
@@ -118,53 +140,50 @@
                 </div>
 
                 <!-- 3D Rotating Turntable -->
-                <div class="garage-turntable-wrapper">
-                    <button id="btn-prev-car" class="turntable-nav-btn btn-prev">◀</button>
-                    <canvas id="garage-turntable-canvas" width="400" height="220"></canvas>
-                    <button id="btn-next-car" class="turntable-nav-btn btn-next">▶</button>
+                <div class="turntable-stage">
+                    <canvas id="turntable-canvas" width="460" height="240"></canvas>
                 </div>
 
-                <!-- Vehicle Metadata -->
-                <div class="garage-car-header">
-                    <div id="garage-car-name" class="garage-car-name">Neon Compact</div>
-                    <div id="garage-car-type" class="garage-car-type">NORMAL • STARTER COMPACT</div>
-                    <div id="garage-car-rarity" class="rarity-badge badge-common">COMMON</div>
-                    <div id="garage-car-desc" style="font-size: 0.85rem; color: #a0aec0; margin-top: 4px;">Nimble hot hatch with agile steering.</div>
+                <!-- Selected Car Information -->
+                <div class="garage-car-info">
+                    <div class="garage-header-row">
+                        <div id="garage-car-name" class="garage-car-name">Neon Compact</div>
+                        <div id="garage-car-rarity" class="rarity-badge badge-common">COMMON</div>
+                    </div>
+                    <div id="garage-car-type" class="garage-car-type">Starter Compact</div>
+                    <div id="garage-car-desc" class="garage-car-desc">Nimble lightweight hatchback with agile steering and balanced performance.</div>
                 </div>
 
-                <!-- Vehicle Specs Bars -->
+                <!-- Car Performance Specs -->
                 <div class="garage-specs-grid">
                     <div class="spec-item">
                         <div class="spec-label">Top Speed</div>
-                        <div class="spec-bar-bg"><div id="stat-speed" class="spec-bar-fill" style="width: 65%;"></div></div>
+                        <div class="spec-bar-bg"><div id="spec-speed-bar" class="spec-bar-fill" style="width: 65%;"></div></div>
                     </div>
                     <div class="spec-item">
                         <div class="spec-label">Acceleration</div>
-                        <div class="spec-bar-bg"><div id="stat-accel" class="spec-bar-fill" style="width: 68%;"></div></div>
+                        <div class="spec-bar-bg"><div id="spec-accel-bar" class="spec-bar-fill" style="width: 68%;"></div></div>
                     </div>
                     <div class="spec-item">
                         <div class="spec-label">Handling</div>
-                        <div class="spec-bar-bg"><div id="stat-handling" class="spec-bar-fill" style="width: 78%;"></div></div>
+                        <div class="spec-bar-bg"><div id="spec-handling-bar" class="spec-bar-fill" style="width: 78%;"></div></div>
                     </div>
                     <div class="spec-item">
-                        <div class="spec-label">Armor / Durability</div>
-                        <div class="spec-bar-bg"><div id="stat-armor" class="spec-bar-fill" style="width: 55%;"></div></div>
-                    </div>
-                    <div class="spec-item">
-                        <div class="spec-label">Drift Angle</div>
-                        <div class="spec-bar-bg"><div id="stat-drift" class="spec-bar-fill" style="width: 60%;"></div></div>
+                        <div class="spec-label">Armor & Durability</div>
+                        <div class="spec-bar-bg"><div id="spec-armor-bar" class="spec-bar-fill" style="width: 55%;"></div></div>
                     </div>
                 </div>
 
-                <!-- Status & Buy/Select Button -->
-                <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; max-width: 320px;">
-                    <div id="garage-car-price" class="status-equipped">EQUIPPED</div>
-                    <button id="garage-action-btn" class="btn-arcade btn-primary" style="width: 100%;">
-                        SELECT CAR
-                    </button>
-                    <button id="btn-garage-gacha" class="btn-arcade btn-secondary" style="width: 100%; font-size: 0.88rem; padding: 10px;">
-                        <span>🎰</span> OPEN CAR GACHA
-                    </button>
+                <!-- Garage Actions -->
+                <div class="garage-controls-row">
+                    <button id="btn-prev-car" class="btn-arcade btn-secondary" style="width: 54px; font-size: 1.4rem;">◀</button>
+                    <div id="garage-status-indicator" class="status-equipped">EQUIPPED</div>
+                    <button id="btn-next-car" class="btn-arcade btn-secondary" style="width: 54px; font-size: 1.4rem;">▶</button>
+                </div>
+
+                <div class="garage-sub-actions">
+                    <button id="btn-action-car" class="btn-arcade btn-primary" style="min-width: 200px;">EQUIP CAR</button>
+                    <button id="btn-garage-gacha" class="btn-arcade btn-secondary"><span>🎰</span> ROLL IN GACHA</button>
                 </div>
             </div>
         </div>
@@ -184,7 +203,7 @@
 
                 <div class="game-logo-container" style="margin-bottom: 8px;">
                     <h2 class="game-title" style="font-size: 2.1rem;">NEON CAR GACHA</h2>
-                    <div class="game-subtitle">ROLL TO UNLOCK RARE, EPIC & LEGENDARY VEHICLES</div>
+                    <div class="game-subtitle">SUMMON RARE, EPIC & LEGENDARY HYPERCARS</div>
                 </div>
 
                 <!-- Animated Hologram Chamber -->
@@ -202,7 +221,7 @@
                         <span class="rate-legendary">LEGENDARY: 5%</span>
                     </div>
                     <div style="font-size: 0.72rem; color: #718093; text-align: center;">
-                        Total: 100% (Client-Side Storage) • Duplicates convert up to $5,000 cash refund
+                        Total: 100% • Duplicates convert up to $5,000 cash refund
                     </div>
                 </div>
 
@@ -220,15 +239,31 @@
             </div>
         </div>
 
+        <!-- 3B2. CINEMATIC GACHA SUMMON WARP OVERLAY -->
+        <div id="gacha-warp-overlay" class="screen-overlay hidden">
+            <canvas id="gacha-warp-canvas"></canvas>
+            <button id="btn-gacha-skip" class="gacha-skip-btn">
+                <span>⏩ SKIP</span>
+            </button>
+        </div>
+
         <!-- 3C. GACHA REVEAL MODAL -->
         <div id="gacha-reveal-modal" class="screen-overlay hidden">
             <div class="reveal-modal-box">
-                <div class="modal-title" style="font-size: 1.8rem; color: #00d2ff;">GACHA REVEAL</div>
+                <div class="modal-title" style="font-size: 1.8rem; color: #00d2ff;">OUTLAW CAR REVEAL</div>
                 <div id="gacha-cards-container" class="cards-reveal-grid"></div>
                 <div id="gacha-summary-text"></div>
-                <button id="btn-gacha-reveal-close" class="btn-arcade btn-primary" style="margin-top: 14px; min-width: 200px;">
-                    COLLECT & CONTINUE
-                </button>
+                <div class="reveal-actions-row">
+                    <button id="btn-gacha-again-1" class="btn-arcade btn-secondary" style="min-width: 150px; font-size: 0.85rem;">
+                        ROLL 1x AGAIN ($500)
+                    </button>
+                    <button id="btn-gacha-again-10" class="btn-arcade btn-secondary" style="min-width: 150px; font-size: 0.85rem;">
+                        ROLL 10x AGAIN ($4,500)
+                    </button>
+                    <button id="btn-gacha-reveal-close" class="btn-arcade btn-primary" style="min-width: 170px;">
+                        COLLECT & CONTINUE
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -375,12 +410,22 @@
                     </div>
                 </div>
 
+                <!-- Rank & RP Progress Box -->
+                <div class="gameover-rank-progress-box">
+                    <div class="go-rp-row">
+                        <span>REPUTATION EARNED:</span>
+                        <span id="go-run-rp" style="color: #f1c40f; font-weight: 900;">+0 RP</span>
+                    </div>
+                    <div id="go-rankup-notice" class="go-rankup-notice hidden">🎉 PROMOTED TO NEW RANK TIER!</div>
+                </div>
+
                 <div style="font-size: 0.9rem; color: #a0aec0; margin: 4px 0;">
                     ALL-TIME BEST: <span id="go-best-score" style="color: #ffffff; font-weight: 800;">0</span>
                 </div>
 
                 <div class="menu-actions-stack" style="margin-top: 8px;">
                     <button id="btn-gameover-restart" class="btn-arcade">🔄 PLAY AGAIN</button>
+                    <button id="btn-gameover-rank" class="btn-arcade btn-secondary">🏆 VIEW RANKINGS</button>
                     <button id="btn-gameover-garage" class="btn-arcade btn-secondary">🚗 UPGRADE IN GARAGE</button>
                     <button id="btn-gameover-menu" class="btn-arcade btn-secondary">🏠 MAIN MENU</button>
                 </div>
@@ -392,7 +437,7 @@
             <div class="modal-box" style="max-width: 620px;">
                 <div class="modal-title">THE GETAWAY MISSION</div>
                 <div class="story-content">
-                    <p><strong>Original Story:</strong> You are the Underground Syndicate's most sought-after wheelman in <strong>Neon Getaway: Destruction Run</strong>. Sheriff Vance and the Highway Patrol have locked down the county borders. Smash contraband drops, collect bounties, and outrun the law!</p>
+                    <p><strong>Original Story:</strong> You are the Underground Syndicate's most sought-after wheelman in <strong>Smash Bandits Runner</strong>. Sheriff Vance and the Highway Patrol have locked down the county borders. Smash contraband drops, collect bounties, and outrun the law!</p>
                     
                     <h3>🖥️ Desktop Controls (Mouse-Driven Steering)</h3>
                     <ul>
@@ -419,6 +464,55 @@
 
                 <button id="btn-close-story" class="btn-arcade btn-secondary" style="margin-top: 12px;">
                     GOT IT, LET'S DRIVE!
+                </button>
+            </div>
+        </div>
+
+        <!-- 8. RANKINGS & LEADERBOARD MODAL -->
+        <div id="ranking-modal" class="screen-overlay hidden">
+            <div class="modal-box ranking-modal-box">
+                <div class="modal-title" style="color: #f1c40f;">🏆 UNDERGROUND DRIVER RANKINGS</div>
+                <div class="ranking-subtitle">SYNDICATE REPUTATION & WANTED LEADERBOARDS</div>
+
+                <!-- Driver License Card -->
+                <div class="driver-license-card">
+                    <div class="license-header">
+                        <div class="license-badge-large" id="license-badge-icon">🔰</div>
+                        <div class="license-title-stack">
+                            <div class="license-driver-name">WHEELMAN (YOU)</div>
+                            <div class="license-rank-title" id="license-rank-name">TIER E: STREET NOVICE</div>
+                        </div>
+                        <div class="license-rp-badge" id="license-rp-val">0 RP</div>
+                    </div>
+
+                    <!-- Progress Bar to Next Rank -->
+                    <div class="rank-progress-wrapper">
+                        <div class="rank-progress-info">
+                            <span id="rank-progress-needed">1,000 RP to Tier D: Neon Runner</span>
+                            <span id="rank-progress-pct">0%</span>
+                        </div>
+                        <div class="rank-progress-bar-bg">
+                            <div id="rank-progress-bar-fill" class="rank-progress-bar-fill" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leaderboard Filter Tabs -->
+                <div class="ranking-tabs-row">
+                    <button class="rank-tab-btn active" data-tab="score">🏆 MOST WANTED</button>
+                    <button class="rank-tab-btn" data-tab="cops">🚔 POLICE WRECKERS</button>
+                    <button class="rank-tab-btn" data-tab="destruction">💥 DEMOLITION</button>
+                    <button class="rank-tab-btn" data-tab="rewards">🎁 RANK REWARDS</button>
+                </div>
+
+                <!-- Leaderboard Table Container -->
+                <div id="ranking-leaderboard-container" class="ranking-table-container"></div>
+
+                <!-- Rank Rewards Container -->
+                <div id="ranking-rewards-container" class="ranking-rewards-container hidden"></div>
+
+                <button id="btn-close-ranking" class="btn-arcade btn-primary" style="margin-top: 14px; min-width: 200px;">
+                    CLOSE
                 </button>
             </div>
         </div>

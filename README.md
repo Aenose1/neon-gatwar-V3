@@ -1,150 +1,79 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-# NEON GETAWAY: DESTRUCTION RUN 🏎️💥
+# SMASH BANDITS RUNNER 🏎️💥
 
 > **A high-octane 2D/2.5D browser arcade getaway driving game inspired by the mechanics and spirit of Smash Bandits Racing.**
-> Smash through roadside scenery for dirty cash bounties, maintain high-speed destruction combos, manage vehicle damage, survive relentless blue and black highway patrol pursuits, unlock 10 unique getaway cars across Normal, Sports, and Racing categories via the showroom and neon Gacha system, navigate waterways and bridges, and unleash three tactical abilities with 150-second cooldowns!
+> Smash through roadside scenery for dirty cash bounties, maintain high-speed destruction combos, manage vehicle damage, survive relentless blue and black highway patrol pursuits, unlock 17 unique getaway cars across Common, Rare, Epic, and Legendary categories via the showroom and cinematic Gacha warp system, conquer 4 distinct seasonal maps (including the Tri-Season Megalopolis), climb the Underground Syndicate Driver Leaderboards, and unleash three tactical abilities with 150-second cooldowns!
 
 ---
 
 ## 🎮 Playable Demo & Overview
 
-- **Title:** NEON GETAWAY: DESTRUCTION RUN *(configurable in `src/config.js`)*
-- **Genre:** Top-down / 2.5D Arcade Driving, Destruction, Gacha & Police Pursuit
-- **Platform:** Modern Desktop, Laptop, Tablet, and Mobile Web Browsers (zero installs, zero API keys, no backend required)
+- **Title:** SMASH BANDITS RUNNER *(configurable in `src/config.js`)*
+- **Short Title:** SMASH BANDITS
+- **Genre:** Top-down / 2.5D Arcade Driving, Destruction, Gacha, Police Pursuit & Ranking
+- **Platform:** Modern Desktop, Laptop, Tablet, and Mobile Web Browsers (touch virtual joystick & multi-touch controls, zero installs, zero API keys, no backend required)
 - **Engine / Tech Stack:** HTML5, CSS3, JavaScript (ES6 Modules), HTML5 Canvas 2D, Web Audio API
-- **Persistence:** LocalStorage (Cash balance, Garage ownership, Gacha records, Selected car, High score, Settings)
+- **Persistence:** LocalStorage (Cash balance, Garage ownership, Gacha records, Selected car, Total RP, Leaderboards, Claimed rewards, High score, Settings)
 - **License:** MIT License (`LICENSE`)
 
 ---
 
-## 🏎️ 10 Playable Cars Across 3 Categories
+## 🗺️ 4 Distinct Maps & Tri-Season Metropolis
 
-Every car features a distinct 2.5D visual model, custom chassis contour, aerodynamic spoilers, racing stripes, tailored handling, and calibrated durability.
-
-| Car Name | Category | Rarity | Price | Top Speed | Boost | Accel | Handling | Durability | Drift Mult | Description |
-|---|---|---|---|---|---|---|---|---|---|---|
-| **Neon Compact** | Normal | Common | **FREE ($0)** | 380 | 480 | 420 | 3.8 | 100 HP | 1.0x | Agile starter hot hatch with responsive steering and balanced getaway speed. Unlocked by default. |
-| **Street Sedan** | Normal | Common | **$1,200** | 400 | 500 | 440 | 3.6 | 125 HP | 1.05x | Reliable 4-door getaway sedan with reinforced bumpers, stable road grip, and smooth cruising weight. |
-| **Urban Hatchback** | Normal | Common | **$1,800** | 415 | 515 | 480 | 4.1 | 110 HP | 1.15x | Snappy pocket rocket with quick throttle response and tight turning radius for narrow alley escapes. |
-| **Heavy Cruiser** | Normal | Rare | **$3,500** | 420 | 520 | 470 | 3.1 | 220 HP | 0.85x | Armored heavy-duty road cruiser. Unmatched durability and 2.5x ramming power against road barricades and police. |
-| **Vortex GT** | Sports | Rare | **$5,500** | 450 | 560 | 550 | 4.3 | 120 HP | 1.35x | High-revving twin-cam coupe equipped with rear diffuser and tuned suspension for high-angle drifting. |
-| **Phantom Coupe** | Sports | Epic | **$8,500** | 475 | 590 | 580 | 4.5 | 130 HP | 1.40x | Sleek aerodynamic sports coupe with active carbon spoilers, razor-sharp handling, and rapid corner recovery. |
-| **Inferno RS** | Sports | Epic | **$11,000** | 495 | 615 | 630 | 4.4 | 140 HP | 1.30x | Aggressive widebody track monster with twin turbochargers, blistering acceleration, and explosive nitro boost. |
-| **Apex Racer** | Racing | Epic | **$14,000** | 520 | 645 | 660 | 4.7 | 135 HP | 1.25x | GT championship endurance racer with massive rear wing, ground-effect aero floor, and surgical turn precision. |
-| **Velocity X** | Racing | Legendary | **$18,500** | 550 | 680 | 720 | 4.8 | 145 HP | 1.45x | Ultra-light carbon fiber hypercar featuring active ground suction, rocket-grade acceleration, and hypersonic speeds. |
-| **Thunderbolt Pro** | Racing | Legendary | **$25,000** | 580 | 720 | 780 | 5.0 | 155 HP | 1.50x | The pinnacle of racing engineering. Unrivaled top speed, instantaneous nitro propulsion, and maximum circuit downforce. |
-
----
-
-## 🎰 Neon Car Gacha System
-
-The in-game currency earned by smashing scenery and outrunning police can be spent in the neon-themed Gacha system (`src/gacha.js`).
-
-### Probability Tiers (Total: Exactly 100%)
-- **Common (50%):** Neon Compact, Street Sedan, Urban Hatchback
-- **Rare (30%):** Heavy Cruiser, Vortex GT
-- **Epic (15%):** Phantom Coupe, Inferno RS, Apex Racer
-- **Legendary (5%):** Velocity X, Thunderbolt Pro
-
-### Features & Protections
-- **Single Roll:** $500 coins.
-- **10-Roll Bundle:** $4,500 coins (10% bulk discount).
-- **Duplicate Compensation:** When a duplicate vehicle is drawn, player is immediately reimbursed:
-  - Common duplicate: **+$250 coins** (50% refund)
-  - Rare duplicate: **+$800 coins**
-  - Epic duplicate: **+$2,000 coins**
-  - Legendary duplicate: **+$5,000 coins**
-- **Anti-Spam Click Protection:** Single-flight asynchronous lock prevents race conditions or negative currency balances from rapid button clicking.
-- **Client-Side Transparency:** Operates entirely within the browser without requiring external servers or APIs.
+1. **Green Suburbs (Spring):**
+   - Central octagonal roundabout hub with 4 expansive boulevards.
+   - Flowing residential loops, cul-de-sacs, cherry blossom trees, and wooden creek bridges.
+2. **River District (Summer):**
+   - Dual-waterfront canal network with North Shore Parkway and South Dockway.
+   - Sweeping coastal sweepers, maritime docks, sun glints, and stone suspension bridges.
+3. **Neon Industrial Zone (Night):**
+   - Super-wide 8-lane Freightway, tight 90-degree warehouse chicanes, security perimeters, and steel girder bridges.
+4. **Tri-Season Metropolis (Combined 4th Map):**
+   - Seamlessly blends Spring Suburbs (NW), Summer Waterfront (NE), and Neon Industrial (South).
+   - Dynamic road surface traction (`0.95` NW asphalt, `0.98` dry shoreline concrete, `0.92` industrial oil slick tarmac).
+   - 5 distinct bridges crossing the grand metropolitan canal.
+   - Dynamic blended weather system generating petals in the northwest, sun glints in the northeast, and neon sparks in the south.
 
 ---
 
-## 🗺️ Three Improved Maps & Gameplay Bug Fixes
+## 🎰 Cinematic Gacha Warp Summon Animation
 
-### 1. Fix: Houses in the Middle of Roads
-- **Zero House Obstacles:** Every building, house, and warehouse across all 3 maps is guaranteed to be placed safely outside road lanes, shoulders, and intersections (`distToSegment >= r.halfW + Math.min(b.w, b.h) / 2 + 10`).
-- Tested with automated road collision scans to ensure driving routes remain 100% clear.
-
-### 2. Fix: Water Hazard & Bridge Collision
-- **Water Barriers:** Cars cannot drive across rivers, creeks, or canals.
-- **Water Penalty:** Entering water hazards causes severe deceleration (`7.0 * dt`), spawns animated water splashes, and plays authentic water splash audio synthesizer effects.
-- **Auto-Recovery from Water:** Stalling in deep water resets the vehicle safely to the nearest dry road bank with 15 water collision damage and HUD notification `WATER HAZARD! VEHICLE RECOVERED`.
-- **Drivable Bridges:** Bridges across waterways feature full structural collision bypass (`map.isOnBridge(x, y)`), enabling fast crossings.
-
-### Map Roster:
-1. **Green Suburbs (Map 0):**
-   - Lush neighborhood with suburban avenues, front-yard fences, blossoming cherry trees, hydrants, streetlights, and trash cans.
-2. **River District (Map 1):**
-   - Waterfront canals, scenic waterways, stone and suspension bridges, shipping docks, cargo barrels, and deep river traps.
-3. **Neon Industrial Zone (Map 2):**
-   - High-voltage freight complex with warehouses, stacked shipping containers, neon road markings, oil drums, and heavy concrete barricades.
+- 60 FPS hyperspace warp tunnel with streaking stellar dust and expanding central rift.
+- Dynamic color aura telegraphing the highest rarity pulled (Silver Common, Cyan Rare, Violet Epic, Radiant Gold Legendary).
+- Climax vehicle projectile silhouette burst with camera shake, blinding flash, and procedural synthesizer sound.
+- Quick "⏩ SKIP" button to jump directly to cards.
+- Quick "ROLL 1x AGAIN" and "ROLL 10x AGAIN" summon buttons.
 
 ---
 
-## 💥 Destructible Scenery & Economy Balancing (>= 57% Destructible)
+## 🏆 Underground Syndicate Ranking System
 
-Every map contains hundreds of eligible environmental props, with **at least 57% (measured at 82%–84%)** being fully destructible.
-
-### Tiered Breaking Thresholds & Rewards
-- **Light Tier (Speed >= 30 MPH):**
-  - Props: Wooden crates, road signs, bushes, flowerpots, trash cans.
-  - Reward: **+$8 cash**, +80 score.
-  - Breaks easily on any slight contact.
-- **Medium Tier (Speed >= 130 MPH):**
-  - Props: Picket fences, streetlights, fire hydrants, oil barrels, market stalls, haybales.
-  - Reward: **+$16 cash**, +180 score.
-  - Requires moderate cruising speed; low-speed collisions bounce off and spark.
-- **Heavy Tier (Speed >= 230 MPH or Tank / Cruiser):**
-  - Props: Concrete road barriers, small shipping containers, wooden sheds, oil storage tanks.
-  - Reward: **+$28 cash**, +320 score.
-  - Requires high speed, nitro boost, Heavy Cruiser, or Titan Tank.
-- **Indestructible Solid Props:**
-  - Steel bollards, power transformers, stone monuments, and industrial pylons. Solid collision bounce, dealing impact damage.
-- **Anti-Farming Protection:** Destroyed objects stay destroyed for the duration of the getaway run, preventing repeat farming.
+- **7 Driver Tiers:**
+  - `E` - Street Novice (0 - 999 RP)
+  - `D` - Neon Runner (1,000 - 2,999 RP) — $1,500 Cash Reward
+  - `C` - Highway Fugitive (3,000 - 6,999 RP) — $3,500 Cash Reward
+  - `B` - Syndicate Wheelman (7,000 - 14,999 RP) — $7,500 Cash Reward
+  - `A` - Apex Drifter (15,000 - 29,999 RP) — $15,000 Cash Reward
+  - `S` - County Nemesis (30,000 - 49,999 RP) — $30,000 Cash Reward
+  - `S+` - Most Wanted Legend (50,000+ RP) — $60,000 Cash Reward
+- **Reputation Points (RP):** Earned from run score, police cars wrecked, scenery smashed, and successful escapes.
+- **Dynamic Leaderboards:** 4 tabs (Most Wanted Score, Police Wreckers, Scenery Demolition, Rank Rewards) tracking your standing against 10 elite syndicate rivals.
 
 ---
 
-## 🚨 Police Pursuit & 10-Minute Escalation (Zero Spike Strips)
+## 🏎️ 17 Playable Cars (5 Common, 2 Rare, 5 Epic, 5 Legendary)
 
-- **Standard Blue Cruisers:** Active from the start with sirens and dynamic pursuit maneuvers.
-- **Black Advanced Interceptors:** Deploy at **10 minutes (600 seconds)** of active gameplay with enhanced ramming force, higher top speed, and red/amber lightbars.
-- **Zero Spike Strips:** Strictly no spike strips anywhere in the game.
-- **Auto-Reverse Recovery:** Automatically reverses if pinned against a wall or obstacle for ~2 seconds.
-
----
-
-## ⚡ Tactical Abilities (150-Second Cooldowns)
-
-Each ability operates on an independent 150-second (2m 30s) timer:
-1. **Titan Tank (`1` / `Q`):** Armored battle tank with crushing ramming power (10s duration).
-2. **Oil Slick (`2` / `E`):** Deploys slick that sends chasing police into spinouts (14s duration).
-3. **Electric Shock (`3` / `R`):** EMP shockwave stunning all police within 280px radius (4s stun).
+- **Common (5):** Neon Compact, Street Sedan, Urban Hatchback, Cargo Wagon, Night Runner
+- **Rare (2):** Heavy Cruiser, Vortex Tuner
+- **Epic (5):** Phantom Muscle, Inferno Supercar, Apex Racer, Specter GT, Cyclone Drift
+- **Legendary (5):** Velocity Prototype, Thunderbolt Hypercar, Hyperion GT, Valkyrie Hypercar, Zenith Prototype
 
 ---
 
-## 🛠️ Testing & Verification
+## 📱 Mobile Controls & Responsive Experience
 
-Run the automated Node.js test suite:
-
-```bash
-# Direct test execution
-node test/game-test.js
-
-# Or via npm
-npm test
-```
-
-### Automated Verifications:
-- ✅ **10 Cars:** 4 Normal, 3 Sports, 3 Racing with unique stats and rarities.
-- ✅ **3 Maps:** Green Suburbs, River District, Neon Industrial Zone.
-- ✅ **Zero Houses on Roads:** All buildings verified off road lanes and intersections.
-- ✅ **Water & Bridges:** Water blocks driving while bridges permit crossing.
-- ✅ **Destructible Ratio:** Every map achieves $\ge 57\%$ destructibility (actual: 82.8%–83.4%).
-- ✅ **Gacha Monte Carlo Test:** 25,000 draws verify 50% Common, 30% Rare, 15% Epic, 5% Legendary rates.
-- ✅ **Duplicate Compensation:** Verified for all tiers.
-- ✅ **Police Escalation:** 10-minute deployment verified with zero spike strips.
-- ✅ **150s Ability Cooldowns:** Verified independent execution and cooldown pause.
+- Virtual analog floating joystick with dynamic touch origin.
+- Multi-touch action buttons: Boost (Nitro), Brake/Reverse, and Drift/Handbrake.
+- Isolated styling in dedicated `mobile-v3.css`.
 
 ---
 
@@ -152,27 +81,11 @@ npm test
 
 The game requires **no backend server, database, or API keys** and can be deployed directly as static files:
 
-### 1. GitHub Pages
-1. Push repository to GitHub.
-2. In Repository Settings → Pages, select `Branch: master`, folder `/ (root)`.
-3. Save; the public URL will be live in seconds.
+### 1. Vercel
+Push repository to GitHub main branch; Vercel auto-deploys static builds instantly.
 
-### 2. Vercel
-1. Install Vercel CLI or import the GitHub repository in the Vercel Dashboard.
-2. Deploy as a static project without build command.
-
-### 3. Local Preview
+### 2. Local Preview
 ```bash
-# Using Python
-python -m http.server 8000
-
-# Using npx serve
 npx serve -l 3000 .
 ```
-Open `http://localhost:8000` or `http://localhost:3000` in any web browser.
-=======
-# neon-getaway-V2
->>>>>>> 84f734fa0125cee35c958995659764c7665bc2dd
-=======
-# neon-gatwar-V3
->>>>>>> 8c2866fe2030f84edd9efe18e038e8ea6df9ee5d
+Open `http://localhost:3000` in any web browser.

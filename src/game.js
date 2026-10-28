@@ -1,7 +1,9 @@
-// src/game.js - Master game coordinator, state machine, Gacha system, and update/render loops
+// src/game.js - Master game coordinator, state machine, Gacha system, ranking, and update/render loops
 import { CONFIG } from './config.js';
 import { storage } from './storage.js';
 import { audio } from './audio.js';
+import { ranking } from './ranking.js';
+import { gachaAnimator } from './gacha-anim.js';
 import { Camera } from './camera.js';
 import { PlayerCar } from './player.js';
 import { GameMap } from './maps.js';
@@ -23,6 +25,7 @@ export class Game {
         this.state = 'MENU';
         this.lastTime = performance.now();
         this.gameOverTimer = 0;
+        this.activeRankTab = 'score';
 
         // Subsystems
         this.map = new GameMap(storage.getSelectedMap());
@@ -70,6 +73,12 @@ export class Game {
         this.storyModalEl = document.getElementById('story-modal');
         this.gachaScreenEl = document.getElementById('gacha-screen');
         this.gachaRevealModalEl = document.getElementById('gacha-reveal-modal');
+        this.rankingModalEl = document.getElementById('ranking-modal');
+
+        // Top Bar Badges
+        this.menuRankBadgeEl = document.getElementById('menu-ranking-badge');
+        this.menuRankIconEl = document.getElementById('menu-rank-icon');
+        this.menuRankNameEl = document.getElementById('menu-rank-name');
 
         // HUD Elements
         this.hudCashEl = document.getElementById('hud-cash');
@@ -104,6 +113,30 @@ export class Game {
             this.showMapSelect();
         });
 
+        document.getElementById('btn-ranking')?.addEventListener('click', () => {
+            audio.ensureContext();
+            this.showRankingModal();
+        });
+
+        this.menuRankBadgeEl?.addEventListener('click', () => {
+            audio.ensureContext();
+            this.showRankingModal();
+        });
+
+        document.getElementById('btn-close-ranking')?.addEventListener('click', () => {
+            this.rankingModalEl?.classList.add('hidden');
+        });
+
+        // Ranking Tabs
+        document.querySelectorAll('.rank-tab-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.rank-tab-btn').forEach((b) => b.classList.remove('active'));
+                btn.classList.add('active');
+                this.activeRankTab = btn.dataset.tab;
+                this.renderRankingTabContent();
+            });
+        });
+
         document.getElementById('btn-gacha')?.addEventListener('click', () => {
             audio.ensureContext();
             this.showGacha();
@@ -133,7 +166,7 @@ export class Game {
             this.updateSoundIcons();
         });
 
-        // Map Selection
+        // Map Selection (4 distinct maps)
         document.querySelectorAll('.map-card').forEach((card) => {
             card.addEventListener('click', () => {
                 const mapIdx = parseInt(card.dataset.mapIndex, 10);
@@ -164,6 +197,18 @@ export class Game {
             this.handleGachaRoll(10);
         });
 
+        document.getElementById('btn-gacha-again-1')?.addEventListener('click', () => {
+            audio.ensureContext();
+            this.closeGachaReveal();
+            this.handleGachaRoll(1);
+        });
+
+        document.getElementById('btn-gacha-again-10')?.addEventListener('click', () => {
+            audio.ensureContext();
+            this.closeGachaReveal();
+            this.handleGachaRoll(10);
+        });
+
         document.getElementById('btn-gacha-reveal-close')?.addEventListener('click', () => {
             this.closeGachaReveal();
         });
@@ -191,6 +236,10 @@ export class Game {
         document.getElementById('btn-gameover-restart')?.addEventListener('click', () => {
             this.gameOverEl.classList.add('hidden');
             this.startRun();
+        });
+
+        document.getElementById('btn-gameover-rank')?.addEventListener('click', () => {
+            this.showRankingModal();
         });
 
         document.getElementById('btn-gameover-garage')?.addEventListener('click', () => {
@@ -244,6 +293,174 @@ export class Game {
         if (menuEl) menuEl.textContent = formatted;
         if (garageEl) garageEl.textContent = formatted;
         if (gachaEl) gachaEl.textContent = formatted;
+
+        this.updateRankingUI();
+    }
+
+    updateRankingUI() {
+        const rp = storage.getTotalRP();
+        const tier = ranking.getTierByRP(rp);
+
+        if (this.menuRankIconEl) this.menuRankIconEl.textContent = tier.badge;
+        if (this.menuRankNameEl) this.menuRankNameEl.textContent = tier.name.toUpperCase();
+        if (this.menuRankBadgeEl) {
+            this.menuRankBadgeEl.style.borderColor = tier.color;
+            this.menuRankBadgeEl.style.color = tier.color;
+        }
+    }
+
+    showRankingModal() {
+        if (!this.rankingModalEl) return;
+
+        const rp = storage.getTotalRP();
+        const tier = ranking.getTierByRP(rp);
+        const progress = ranking.getProgress(rp);
+
+        // Update Driver License Card
+        const iconEl = document.getElementById('license-badge-icon');
+        const nameEl = document.getElementById('license-rank-name');
+        const rpEl = document.getElementById('license-rp-val');
+        const progressNeededEl = document.getElementById('rank-progress-needed');
+        const progressPctEl = document.getElementById('rank-progress-pct');
+        const progressBarFillEl = document.getElementById('rank-progress-bar-fill');
+
+        if (iconEl) iconEl.textContent = tier.badge;
+        if (nameEl) {
+            nameEl.textContent = `TIER ${tier.id}: ${tier.name.toUpperCase()}`;
+            nameEl.style.color = tier.color;
+        }
+        if (rpEl) rpEl.textContent = `${rp.toLocaleString()} RP`;
+
+        if (progress.nextTier) {
+            if (progressNeededEl) {
+                progressNeededEl.textContent = `${progress.neededRP.toLocaleString()} RP to Tier ${progress.nextTier.id}: ${progress.nextTier.name}`;
+            }
+            if (progressPctEl) progressPctEl.textContent = `${progress.pct}%`;
+            if (progressBarFillEl) progressBarFillEl.style.width = `${progress.pct}%`;
+        } else {
+            if (progressNeededEl) progressNeededEl.textContent = 'MAX RANK ACHIEVED - SYNDICATE LEGEND';
+            if (progressPctEl) progressPctEl.textContent = '100%';
+            if (progressBarFillEl) progressBarFillEl.style.width = '100%';
+        }
+
+        this.renderRankingTabContent();
+        this.rankingModalEl.classList.remove('hidden');
+    }
+
+    renderRankingTabContent() {
+        const lbContainer = document.getElementById('ranking-leaderboard-container');
+        const rewardsContainer = document.getElementById('ranking-rewards-container');
+        if (!lbContainer || !rewardsContainer) return;
+
+        if (this.activeRankTab === 'rewards') {
+            lbContainer.classList.add('hidden');
+            rewardsContainer.classList.remove('hidden');
+            this.renderRankRewardsList(rewardsContainer);
+        } else {
+            rewardsContainer.classList.add('hidden');
+            lbContainer.classList.remove('hidden');
+            this.renderLeaderboardTable(lbContainer, this.activeRankTab);
+        }
+    }
+
+    renderLeaderboardTable(container, category) {
+        const playerStats = {
+            highScore: storage.getHighScore(),
+            totalRP: storage.getTotalRP(),
+            totalCopsWrecked: storage.data.stats?.totalCopsWrecked || 0,
+            totalSmashed: storage.data.stats?.totalSmashed || 0,
+            selectedCarName: this.player?.model?.name || 'Active Ride'
+        };
+
+        const list = ranking.getLeaderboard(category, playerStats);
+
+        let metricHeader = 'BEST SCORE';
+        if (category === 'cops') metricHeader = 'COPS WRECKED';
+        else if (category === 'destruction') metricHeader = 'OBJECTS SMASHED';
+        else if (category === 'rank') metricHeader = 'REPUTATION (RP)';
+
+        let html = `
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th>OUTLAW DRIVER</th>
+                        <th>VEHICLE</th>
+                        <th>TIER</th>
+                        <th style="text-align: right;">${metricHeader}</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        list.forEach((item) => {
+            const isPlayer = item.isPlayer;
+            const rowClass = isPlayer ? 'lb-row-player' : '';
+            const tierObj = ranking.tiers.find((t) => t.id === item.tier) || ranking.tiers[0];
+
+            let metricVal = item.score.toLocaleString();
+            if (category === 'cops') metricVal = `${item.cops} COPS`;
+            else if (category === 'destruction') metricVal = `${item.smashed} SMASHED`;
+            else if (category === 'rank') metricVal = `${item.rp.toLocaleString()} RP`;
+
+            html += `
+                <tr class="${rowClass}">
+                    <td><strong>${item.rankPosition <= 3 ? ['🥇', '🥈', '🥉'][item.rankPosition - 1] : item.rankPosition}</strong></td>
+                    <td>${isPlayer ? '⭐ ' : ''}${item.name}</td>
+                    <td style="color: #a0aec0;">${item.car}</td>
+                    <td><span class="lb-rank-badge" style="color: ${tierObj.color};">${tierObj.badge} ${tierObj.id}</span></td>
+                    <td style="text-align: right; font-weight: 800;">${metricVal}</td>
+                </tr>
+            `;
+        });
+
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    }
+
+    renderRankRewardsList(container) {
+        const totalRP = storage.getTotalRP();
+        let html = '';
+
+        ranking.tiers.forEach((tier) => {
+            if (tier.rewardCash <= 0) return;
+
+            const isUnlocked = totalRP >= tier.minRP;
+            const isClaimed = storage.isRankRewardClaimed(tier.id);
+
+            html += `
+                <div class="rank-reward-card ${isClaimed ? 'rank-reward-claimed' : ''}">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 1.5rem;">${tier.badge}</span>
+                        <div>
+                            <div style="font-weight: 800; color: ${tier.color};">Tier ${tier.id}: ${tier.name}</div>
+                            <div style="font-size: 0.72rem; color: #a0aec0;">Required: ${tier.minRP.toLocaleString()} RP • Reward: +$${tier.rewardCash.toLocaleString()}</div>
+                        </div>
+                    </div>
+                    <div>
+                        ${isClaimed 
+                            ? '<span style="font-size: 0.75rem; color: #2ecc71; font-weight: 800;">✓ CLAIMED</span>'
+                            : isUnlocked 
+                                ? `<button class="btn-arcade btn-primary btn-claim-reward" data-tier="${tier.id}" data-cash="${tier.rewardCash}" style="padding: 4px 12px; font-size: 0.78rem;">CLAIM</button>`
+                                : `<span style="font-size: 0.72rem; color: #718093; font-weight: 700;">LOCKED</span>`}
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+
+        container.querySelectorAll('.btn-claim-reward').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const tierId = btn.dataset.tier;
+                const cash = parseInt(btn.dataset.cash, 10);
+                if (storage.claimRankReward(tierId, cash)) {
+                    audio.playCashChime();
+                    this.updateAllCashDisplays();
+                    this.renderRankRewardsList(container);
+                }
+            });
+        });
     }
 
     showMainMenu() {
@@ -260,21 +477,14 @@ export class Game {
     showMapSelect() {
         this.hideAllScreens();
         this.mapSelectEl.classList.remove('hidden');
-
-        const currentMap = storage.getSelectedMap();
-        document.querySelectorAll('.map-card').forEach((card) => {
-            const idx = parseInt(card.dataset.mapIndex, 10);
-            if (idx === currentMap) card.classList.add('selected');
-            else card.classList.remove('selected');
-        });
-
-        this.state = 'MAP_SELECT';
+        this.updateAllCashDisplays();
     }
 
     showGarage() {
         this.hideAllScreens();
         this.garage.screenEl.classList.remove('hidden');
-        this.garage.show();
+        this.garage.initShowroom();
+        this.updateAllCashDisplays();
         this.state = 'GARAGE';
     }
 
@@ -287,25 +497,41 @@ export class Game {
     }
 
     handleGachaRoll(count = 1) {
-        if (this.gacha.isRolling) return;
-        if (this.gachaFeedbackEl) this.gachaFeedbackEl.textContent = '';
+        if (!this.gacha) return;
 
-        const outcome = count === 10 ? this.gacha.executeMultiRoll() : this.gacha.executeSingleRoll();
+        let outcome = null;
+        if (count === 1) {
+            outcome = this.gacha.executeSingleRoll();
+        } else {
+            outcome = this.gacha.executeMultiRoll();
+        }
 
         if (!outcome.success) {
             if (this.gachaFeedbackEl) {
-                this.gachaFeedbackEl.textContent = `INSUFFICIENT FUNDS! NEED $${outcome.cost || 500} COINS`;
+                if (outcome.reason === 'INSUFFICIENT_FUNDS') {
+                    this.gachaFeedbackEl.textContent = `Insufficient funds! Need $${outcome.cost || (count === 1 ? 500 : 4500)}`;
+                } else {
+                    this.gachaFeedbackEl.textContent = 'Roll currently in progress...';
+                }
             }
             return;
         }
 
-        audio.playGachaRoll();
         this.updateAllCashDisplays();
 
-        // Briefly simulate rolling tension then show reveal cards
-        setTimeout(() => {
+        // Identify highest rarity in roll
+        let bestRarity = 'common';
+        const rarityWeights = { common: 1, rare: 2, epic: 3, legendary: 4 };
+        outcome.rolls.forEach((r) => {
+            if (rarityWeights[r.rarity] > rarityWeights[bestRarity]) {
+                bestRarity = r.rarity;
+            }
+        });
+
+        // Trigger the cinematic hyperspace warp summon animation!
+        gachaAnimator.play(bestRarity, () => {
             this.showGachaReveal(outcome.rolls);
-        }, 350);
+        });
     }
 
     showGachaReveal(rolls) {
@@ -317,7 +543,7 @@ export class Game {
         let bestRarity = 'common';
         const rarityWeights = { common: 1, rare: 2, epic: 3, legendary: 4 };
 
-        rolls.forEach((item) => {
+        rolls.forEach((item, index) => {
             if (rarityWeights[item.rarity] > rarityWeights[bestRarity]) {
                 bestRarity = item.rarity;
             }
@@ -331,14 +557,16 @@ export class Game {
             const card = document.createElement('div');
             card.className = 'gacha-card-item';
             card.style.borderColor = item.color;
-            card.style.boxShadow = `0 0 15px ${item.glow}`;
+            card.style.boxShadow = `0 0 18px ${item.glow}`;
+            card.style.animationDelay = `${index * 0.08}s`;
 
             card.innerHTML = `
                 <div class="rarity-badge badge-${item.rarity}">${item.rarity.toUpperCase()}</div>
                 <div class="gacha-card-name">${item.car.name}</div>
                 <div style="font-size: 0.68rem; color: #a0aec0;">${item.car.category.toUpperCase()}</div>
+                <div style="font-size: 0.65rem; color: #00d2ff; font-weight: 700;">SPD: ${item.car.stats?.speed || 70} • HND: ${item.car.stats?.handling || 70}</div>
                 ${item.isDuplicate 
-                    ? `<div class="gacha-card-comp">DUPE: +$${item.compensation}</div>` 
+                    ? `<div class="gacha-card-comp">DUPE REFUND: +$${item.compensation}</div>` 
                     : `<div style="font-size: 0.72rem; color: #2ecc71; font-weight: 800;">★ NEW UNLOCK!</div>`}
             `;
             this.gachaCardsContainer.appendChild(card);
@@ -383,8 +611,6 @@ export class Game {
 
         this.camera.x = this.player.x;
         this.camera.y = this.player.y;
-        this.camera.targetX = this.player.x;
-        this.camera.targetY = this.player.y;
 
         this.particles.reset();
         this.particles.initWeather(this.map.config.weather, 140, this.map.width, this.map.height);
@@ -468,7 +694,7 @@ export class Game {
         this.player.update(this.controls, this.map, this.particles, this.recovery, dt);
         this.camera.update(this.player, dt);
 
-        // 2. Subsystems (Police active timer only increments during active gameplay)
+        // 2. Subsystems
         this.police.update(this.player, this.map, this.particles, isPlaying, dt);
         this.abilities.update(this.player, this.police, this.particles, isPlaying, dt);
         this.scoring.update(this.player.speed, dt);
@@ -486,11 +712,11 @@ export class Game {
             this.camera
         );
 
-        // 4. Automatic Reverse Recovery System (triggers consistently on both mobile & PC if stuck)
+        // 4. Automatic Reverse Recovery System
         const isAttemptingMove = !this.controls.isBraking;
         this.recovery.update(this.player, this.collisions.isCollidingWithSolid, isAttemptingMove, dt);
 
-        // 5. Update HUD (Health bar, Abilities with 150s cooldowns, Cash, Combo, Notifications)
+        // 5. Update HUD
         this.updateHud();
 
         // 6. Check Vehicle Health Zero / Game Over
@@ -507,7 +733,23 @@ export class Game {
             if (this.gameOverTimer >= 1.6) {
                 storage.addCash(this.scoring.runCash);
                 const isNewHigh = storage.updateHighScore(this.scoring.score);
-                storage.recordRunEnd(this.scoring.smashedCount, this.police.totalWrecked);
+
+                // Calculate Run RP & Check Promotion
+                const rpBreakdown = ranking.calculateRunRP(
+                    this.scoring.score,
+                    this.scoring.smashedCount,
+                    this.police.totalWrecked,
+                    false
+                );
+                const prevRP = storage.getTotalRP();
+                const nextRP = prevRP + rpBreakdown.totalRP;
+                const promo = ranking.checkRankPromotion(prevRP, nextRP);
+
+                storage.recordRunEnd(this.scoring.smashedCount, this.police.totalWrecked, rpBreakdown.totalRP);
+
+                if (promo.promoted && promo.rewardCash > 0) {
+                    storage.addCash(promo.rewardCash);
+                }
 
                 this.showGameOver({
                     score: this.scoring.score,
@@ -515,7 +757,9 @@ export class Game {
                     smashedCount: this.scoring.smashedCount,
                     copsWrecked: this.police.totalWrecked,
                     highScore: storage.getHighScore(),
-                    isNewHigh
+                    isNewHigh,
+                    rpEarned: rpBreakdown.totalRP,
+                    promotion: promo
                 });
             }
         }
@@ -539,42 +783,48 @@ export class Game {
             this.hudHealthFillEl.style.width = `${healthPct}%`;
             this.hudHealthFillEl.style.backgroundColor = healthStatus.color;
         }
+
         if (this.hudHealthPctEl) {
-            this.hudHealthPctEl.textContent = `${healthPct}%`;
+            this.hudHealthPctEl.textContent = `${Math.round(healthPct)}%`;
             this.hudHealthPctEl.style.color = healthStatus.color;
         }
 
-        // Destruction Combo
+        // COMBO BADGE
         if (this.hudComboEl && this.hudComboTextEl) {
-            if (this.scoring.combo > 1) {
+            if (this.scoring.comboMultiplier > 1) {
+                this.hudComboTextEl.textContent = `x${this.scoring.comboMultiplier} COMBO!`;
                 this.hudComboEl.classList.remove('hidden');
-                this.hudComboTextEl.textContent = `x${this.scoring.combo} COMBO!`;
             } else {
                 this.hudComboEl.classList.add('hidden');
             }
         }
 
-        // Heat Stars
+        // HEAT STARS
         if (this.hudHeatStarsEl) {
-            let stars = '';
-            for (let i = 1; i <= 5; i++) {
-                if (i <= this.police.heatLevel) stars += '<span class="star-active">★</span>';
-                else stars += '<span class="star-inactive">☆</span>';
-            }
-            this.hudHeatStarsEl.innerHTML = stars;
+            const heatLevel = this.police.heatLevel;
+            const stars = this.hudHeatStarsEl.querySelectorAll('span');
+            stars.forEach((star, idx) => {
+                if (idx < heatLevel) {
+                    star.className = 'star-active';
+                    star.textContent = '★';
+                } else {
+                    star.className = 'star-inactive';
+                    star.textContent = '☆';
+                }
+            });
         }
 
-        // Ability buttons with independent 150s cooldown display
+        // ABILITY BUTTONS
         this.updateAbilityButton(this.btnTank, this.abilities.abilities.tank);
         this.updateAbilityButton(this.btnOil, this.abilities.abilities.oil);
         this.updateAbilityButton(this.btnEmp, this.abilities.abilities.emp);
 
-        // Recovery / Police Escalation / Water Hazard banner notifications
-        const recoveryMsg = this.recovery.getMessage();
-        const policeMsg = this.police.getAnnouncement();
-        const waterMsg = this.player.waterHazardMessage;
-
+        // NOTIFICATION BANNER
         if (this.hudNotificationEl) {
+            const recoveryMsg = this.recovery.getMessage();
+            const policeMsg = this.police.getAnnouncement();
+            const waterMsg = this.player.waterHazardMessage;
+
             const activeMsg = waterMsg || recoveryMsg || policeMsg;
             if (activeMsg) {
                 this.hudNotificationEl.textContent = activeMsg;
@@ -637,8 +887,24 @@ export class Game {
             else badge.classList.add('hidden');
         }
 
+        // Display RP Earned & Rank Promotion
+        const rpEl = document.getElementById('go-run-rp');
+        if (rpEl) rpEl.textContent = `+${(stats.rpEarned || 0).toLocaleString()} RP`;
+
+        const rankupNoticeEl = document.getElementById('go-rankup-notice');
+        if (rankupNoticeEl) {
+            if (stats.promotion && stats.promotion.promoted) {
+                rankupNoticeEl.textContent = `🎉 PROMOTED TO ${stats.promotion.newTier.name.toUpperCase()}! (+$${stats.promotion.rewardCash.toLocaleString()})`;
+                rankupNoticeEl.classList.remove('hidden');
+                audio.playRankUp();
+            } else {
+                rankupNoticeEl.classList.add('hidden');
+            }
+        }
+
         audio.playGameOver();
         this.state = 'GAMEOVER';
+        this.updateAllCashDisplays();
     }
 
     hideAllScreens() {
@@ -647,6 +913,7 @@ export class Game {
         this.garage.screenEl?.classList.add('hidden');
         this.gachaScreenEl?.classList.add('hidden');
         this.gachaRevealModalEl?.classList.add('hidden');
+        this.rankingModalEl?.classList.add('hidden');
         this.hudEl?.classList.add('hidden');
         this.pauseModalEl?.classList.add('hidden');
         this.gameOverEl?.classList.add('hidden');
